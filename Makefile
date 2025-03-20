@@ -18,6 +18,9 @@ OBJS = $(SRCS:.c=.o)
 # Executable name
 TARGET = pcapmirror
 
+# Installation directory
+PREFIX = /usr/local
+
 # Default rule
 all: $(TARGET)
 
@@ -32,6 +35,14 @@ $(TARGET): $(OBJS)
 # Clean up object files and executable
 clean:
 		rm -f $(OBJS) $(TARGET)
+
+# Install the executable
+install: $(TARGET)
+		sudo install -D $(TARGET) $(PREFIX)/bin/$(TARGET)
+
+# Uninstall the executable
+uninstall:
+		sudo rm -f $(PREFIX)/bin/$(TARGET)
 
 # Run the executable (example)
 run: $(TARGET)
