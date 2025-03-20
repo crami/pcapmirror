@@ -9,8 +9,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define DEST_IP "193.5.68.11" // Replace with your destination IP
-#define DEST_PORT 37008       // TZSP uses port 37008
+#define DEFAULT_DEST_PORT 37008 // Default TZSP port
 #define TZSP_ENCAP_LEN 4       // Length of TZSP encapsulation header
 #define TZSP_TAGGED_LEN 1      // Length of TZSP tagged field header (type)
 
@@ -38,18 +37,21 @@ void print_usage(const char *program_name) {
     printf("Options:\n");
     printf("  -i <interface>  Specify the capture interface\n");
     printf("  -f <filter>     Specify the capture filter (BPF syntax)\n");
+    printf("  -r <ip_address> Specify the destination IP address (required)\n");
+    printf("  -p <port>       Specify the destination port (default: %d)\n", DEFAULT_DEST_PORT);
     printf("  -v              Enable verbose mode\n");
     printf("  -h              Show this help message\n");
     printf("Example:\n");
-    printf("  %s -i eth0 -f 'tcp port 80' -v\n", program_name);
+    printf("  %s -i eth0 -f 'tcp port 80' -v -r 192.168.1.100 -p 47008\n", program_name);
 }
 
 int main(int argc, char *argv[]) {
     pcap_if_t *alldevs;
-    pcap_if_t *device;
     char errbuf[PCAP_ERRBUF_SIZE];
     char *filter_exp = "tcp port 8088"; // Default filter
     char *dev_name = NULL; // Device name
+    char *dest_ip = NULL; // Destination IP, no default value
+    int dest_port = DEFAULT_DEST_PORT; // Destination port, default value
     int i;
     int verbose = 0; // Verbose flag, default is false
 
@@ -72,12 +74,8 @@ int main(int argc, char *argv[]) {
     // Set destination address
     memset(&dest_addr, 0, sizeof(dest_addr));
     dest_addr.sin_family = AF_INET;
-    dest_addr.sin_port = htons(DEST_PORT);
-    if (inet_pton(AF_INET, DEST_IP, &dest_addr.sin_addr) <= 0) {
-        perror("inet_pton");
-        close(sockfd);
-        return 1;
-    }
+    dest_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // Default to localhost
+    dest_addr.sin_port = htons(dest_port);
 
     // Parse command-line arguments
     for (i = 1; i < argc; i++) {
@@ -91,29 +89,49 @@ int main(int argc, char *argv[]) {
             verbose = 1; // Enable verbose mode
         } else if (strcmp(argv[i], "-h") == 0) {
             print_usage(argv[0]);
-            close(sockfd);
             return 0;
+        } else if (strcmp(argv[i], "-r") == 0 && i + 1 < argc) {
+            dest_ip = argv[i + 1]; // Set destination IP from command line
+            i++; // Skip the IP value
+        } else if (strcmp(argv[i], "-p") == 0 && i + 1 < argc) {
+            dest_port = atoi(argv[i + 1]); // Set destination port from command line
+            i++; // Skip the port value
         }
     }
+
+    // Check if destination IP is provided
+    if (dest_ip == NULL) {
+        fprintf(stderr, "Error: Destination IP address is required.\n");
+        print_usage(argv[0]);
+        return 1;
+    }
+
+    if (inet_pton(AF_INET, dest_ip, &dest_addr.sin_addr) <= 0) {
+        perror("inet_pton");
+        return 1;
+    }
+
+    dest_addr.sin_port = htons(dest_port); // Set the port
 
     // If no interface is specified, find all devices
     if (dev_name == NULL) {
         if (pcap_findalldevs(&alldevs, errbuf) == -1) {
             fprintf(stderr, "Error in pcap_findalldevs: %s\n", errbuf);
-            close(sockfd);
             return(1);
         }
 
-        // Print the available devices
+        // Print the available devices for debugging
+        /*
+        pcap_if_t *device;
         printf("Available devices:\n");
         for (device = alldevs; device != NULL; device = device->next) {
             printf("%s - %s\n", device->name, (device->description != NULL) ? device->description : "No description available");
         }
+        */
 
         // Use the first device if no device is specified
         if (alldevs == NULL) {
             fprintf(stderr, "No devices found. Make sure you have permissions to capture traffic.\n");
-            close(sockfd);
             return 1;
         }
 
@@ -140,7 +158,6 @@ int main(int argc, char *argv[]) {
         if (alldevs != NULL) {
             pcap_freealldevs(alldevs);
         }
-        close(sockfd);
         return(2);
     }
 
@@ -150,7 +167,6 @@ int main(int argc, char *argv[]) {
             pcap_freealldevs(alldevs);
         }
         pcap_close(handle);
-        close(sockfd);
         return(2);
     }
 
@@ -160,18 +176,18 @@ int main(int argc, char *argv[]) {
             pcap_freealldevs(alldevs);
         }
         pcap_close(handle);
-        close(sockfd);
         return(2);
     }
 
     struct pcap_pkthdr header;
     const u_char *packet;
     const struct ip *ip_header;
-    const struct tcphdr *tcp_header;
-    char source_ip[INET_ADDRSTRLEN], dest_ip[INET_ADDRSTRLEN];
+    char source_ip_str[INET_ADDRSTRLEN], dest_ip_str[INET_ADDRSTRLEN];
 
     printf("Using interface: %s\n", dev_name);
     printf("Using filter: %s\n", filter_exp);
+    printf("Destination IP: %s\n", dest_ip);
+    printf("Destination Port: %d\n", dest_port);
 
     while (1) {
         packet = pcap_next(handle, &header);
@@ -179,14 +195,12 @@ int main(int argc, char *argv[]) {
             continue;
 
         ip_header = (struct ip*)(packet + 14); // Assuming Ethernet header is 14 bytes
-        inet_ntop(AF_INET, &(ip_header->ip_src), source_ip, INET_ADDRSTRLEN);
-        inet_ntop(AF_INET, &(ip_header->ip_dst), dest_ip, INET_ADDRSTRLEN);
-
-        tcp_header = (struct tcphdr*)(packet + 14 + (ip_header->ip_hl * 4)); // IP header length in 4-byte words
+        inet_ntop(AF_INET, &(ip_header->ip_src), source_ip_str, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &(ip_header->ip_dst), dest_ip_str, INET_ADDRSTRLEN);
 
         if (verbose) {
-            printf("Packet: %s:%d -> %s:%d\n",
-               source_ip, ntohs(tcp_header->source), dest_ip, ntohs(tcp_header->dest));
+            printf("Packet: %s -> %s, IP Protocol: %d\n",
+               source_ip_str, dest_ip_str, ip_header->ip_p);
         }
 
         // Create TZSP Header
