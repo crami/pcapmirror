@@ -1,6 +1,5 @@
 # pcapmirror
-
-pcapmirror is a command-line tool for capturing network traffic and mirroring it to a remote destination using TZSP encapsulation. It leverages the `libpcap` library for packet capture and provides options for filtering traffic based on BPF syntax. This tool is useful for network monitoring, intrusion detection, and remote packet analysis.
+pcapmirror is a command-line tool for capturing network traffic and mirroring it to a remote destination using [TZSP encapsulation](https://en.wikipedia.org/wiki/TZSP). It leverages the `libpcap` library for packet capture and provides options for filtering traffic based on BPF syntax. This tool is useful for network monitoring, intrusion detection, and remote packet analysis.
 
 ## Usage
 
@@ -25,6 +24,12 @@ To capture traffic on the eth0 interface, filter for TCP port 80, and send it to
 sudo pcapmirror -i eth0 -f "tcp port 80" -r 192.168.1.100 -p 47008 -v
 ```
 *Note*: Running pcapmirror typically requires root privileges due to the use of libpcap for capturing network traffic.
+
+## Usage with wireshark
+
+With this tool, you can mirror traffic directly to a running [Wireshark](https://www.wireshark.org/).
+
+To avoid capturing traffic from your own monitoring machine, configure Wireshark with a capture filter of udp port 37008 or udp dst port 37008. Also, verify that your firewall permits this UDP traffic.
 
 ## Compile and Install
 

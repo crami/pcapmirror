@@ -1,3 +1,9 @@
+/*
+pcapmirror - A simple packet mirroring tool using libpcap
+
+Copyright (c) 2025, Matthias Cramer, cramer@freestone.net
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pcap.h>
