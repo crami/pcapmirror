@@ -9,9 +9,16 @@
 #include <netdb.h>
 #include <unistd.h>
 
+#define ENABLE_IPV6
+
+#ifdef ENABLE_IPV6
+#include <netinet/ip6.h> // Include for IPv6 header definition
+#endif
+
 #define DEFAULT_DEST_PORT 37008 // Default TZSP port
 #define TZSP_ENCAP_LEN 4       // Length of TZSP encapsulation header
 #define TZSP_TAGGED_LEN 1      // Length of TZSP tagged field header (type)
+#define ETHERNET_HEADER_LENGTH 14
 
 // TZSP Header Structure
 struct tzsp_header {
@@ -181,8 +188,12 @@ int main(int argc, char *argv[]) {
 
     struct pcap_pkthdr header;
     const u_char *packet;
-    const struct ip *ip_header;
-    char source_ip_str[INET_ADDRSTRLEN], dest_ip_str[INET_ADDRSTRLEN];
+    char source_ip_str[INET6_ADDRSTRLEN], dest_ip_str[INET6_ADDRSTRLEN];
+    struct ip *ip_header;
+#ifdef ENABLE_IPV6
+    struct ip6_hdr *ip6_header;
+#endif
+    int ip_protocol = 0;
 
     printf("Using interface: %s\n", dev_name);
     printf("Using filter: %s\n", filter_exp);
@@ -194,13 +205,37 @@ int main(int argc, char *argv[]) {
         if (packet == NULL)
             continue;
 
-        ip_header = (struct ip*)(packet + 14); // Assuming Ethernet header is 14 bytes
-        inet_ntop(AF_INET, &(ip_header->ip_src), source_ip_str, INET_ADDRSTRLEN);
-        inet_ntop(AF_INET, &(ip_header->ip_dst), dest_ip_str, INET_ADDRSTRLEN);
+        // Assuming Ethernet header is 14 bytes
+        // Check IP version
+        ip_header = (struct ip*)(packet + ETHERNET_HEADER_LENGTH);
+        ip_protocol = ip_header->ip_v;
 
-        if (verbose) {
-            printf("Packet: %s -> %s, IP Protocol: %d\n",
-               source_ip_str, dest_ip_str, ip_header->ip_p);
+        if (ip_protocol == 4) {
+            // IPv4
+            inet_ntop(AF_INET, &(ip_header->ip_src), source_ip_str, INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET, &(ip_header->ip_dst), dest_ip_str, INET6_ADDRSTRLEN);
+
+            if (verbose) {
+                printf("IPv4 Packet: %s -> %s, IP Protocol: %d\n",
+                       source_ip_str, dest_ip_str, ip_header->ip_p);
+            }
+        }
+#ifdef ENABLE_IPV6
+         else if (ip_protocol == 6) {
+            // IPv6
+            ip6_header = (struct ip6_hdr*)(packet + ETHERNET_HEADER_LENGTH);
+            inet_ntop(AF_INET6, &(ip6_header->ip6_src), source_ip_str, INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET6, &(ip6_header->ip6_dst), dest_ip_str, INET6_ADDRSTRLEN);
+
+            if (verbose) {
+                printf("IPv6 Packet: %s -> %s, Next Header: %d\n",
+                       source_ip_str, dest_ip_str, ip6_header->ip6_nxt);
+            }
+        }
+#endif
+         else {
+            printf("Non-IP Packet\n");
+            continue;
         }
 
         // Create TZSP Header
