@@ -11,7 +11,7 @@ build-bookworm:
     - bookworm
   script:
     - tar -czf ../pcapmirror_0.2.orig.tar.gz --exclude=debian .
-    - apt get update && apt-get install -y libpcap-dev
+    - apt-get update && apt-get install -y libpcap-dev
     - dpkg-buildpackage -uc -us
     - mkdir -p build
     - mv ../pcapmirror*.* build/
