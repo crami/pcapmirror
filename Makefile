@@ -19,7 +19,7 @@ OBJS = $(SRCS:.c=.o)
 TARGET = pcapmirror
 
 # Installation directory
-PREFIX = /usr/local
+PREFIX = /usr
 
 # Default rule
 all: $(TARGET)
@@ -34,16 +34,17 @@ $(TARGET): $(OBJS)
 
 # Clean up object files and executable
 clean:
-		rm -f $(OBJS) $(TARGET)
+		rm -f -f $(OBJS) $(TARGET)
 
 # Install the executable
 install: $(TARGET)
-		sudo install -D $(TARGET) $(PREFIX)/bin/$(TARGET)
+		mkdir -p $(DESTDIR)$(PREFIX)/bin
+		install -D  $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 
 # Uninstall the executable
 uninstall:
-		sudo rm -f $(PREFIX)/bin/$(TARGET)
+		rm -f $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 
 # Run the executable (example)
 run: $(TARGET)
-		sudo ./$(TARGET) -i eth0 -f "tcp port 80" -v
+		./$(TARGET) -i eth0 -f "tcp port 80" -v

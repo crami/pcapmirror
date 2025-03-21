@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+# See debhelper(7) (>= 13) for a description of compat levels.
+# dh-sequence.mk is deprecated and is now integrated into dh.
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@
+
+

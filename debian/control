@@ -1,0 +1,17 @@
+Source: pcapmirror
+Section: net
+Priority: optional
+Maintainer: Matthias Cramer <cramer@freestone.net>
+Build-Depends: debhelper-compat (=13), libpcap-dev
+Standards-Version: 4.5.0
+Homepage: https://git.freestone.net/cramer/pcapmirror
+
+Package: pcapmirror
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpcap0.8
+Description: A simple packet mirroring tool using libpcap
+ pcapmirror is a command-line tool for capturing network traffic and
+ mirroring it to a remote destination using TZSP encapsulation. It
+ leverages the libpcap library for packet capture and provides options
+ for filtering traffic based on BPF syntax. This tool is useful for
+ network monitoring, intrusion detection, and remote packet analysis.

@@ -55,5 +55,14 @@ On Fedora/CentOS/RHEL systems, you can install it using:
 ```bash
 sudo yum install libpcap-devel
 ```
+## Build debian package
 
+If you have never built a debian pakage you probably need debhelper:
+```bash
+sudo apt-get install debhelper
+```
 
+Then build the package with this command.
+```bash
+dpkg-buildpackage -uc -us
+```

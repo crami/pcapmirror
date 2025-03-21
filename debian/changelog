@@ -1,0 +1,11 @@
+pcapmirror (0.2-1) unstable; urgency=medium
+
+  * First Debian package
+
+ -- Matthias Cramer <cramer@freestone.net>  Fri, 21 Mar 2025 16:00:05 +0100
+
+pcapmirror (0.1-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Matthias Cramer <cramer@freestone.net>  Fri, 21 Mar 2025 15:41:17 +0100
