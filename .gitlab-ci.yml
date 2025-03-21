@@ -1,0 +1,30 @@
+default:
+  image: debian-package-builder-bookworm
+
+stages:
+  - build
+  - package
+
+variables:
+  DEBIAN_FRONTEND: noninteractive
+
+before_script:
+  - apt-get update -qq
+  - apt-get install -y devscripts debhelper dh-make build-essential lintian
+
+build:
+  stage: build
+  script:
+    - mkdir -p build
+    - cp -r * build/
+    - cd build1
+    - debuild -us -uc
+
+package:
+  stage: package
+  script:
+    - cd build
+    - lintian ../*.deb
+  artifacts:
+    paths:
+      - build/*.deb
