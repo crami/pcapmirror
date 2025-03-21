@@ -24,3 +24,23 @@ build-bookworm:
       - build/*.changes
       - build/*.buildinfo
       - build/*.diff.gz
+
+build-sid:
+  stage: build
+  tags:
+    - sid
+  script:
+    - tar -czf ../pcapmirror_0.2.orig.tar.gz --exclude=debian .
+    - apt-get update && apt-get install -y libpcap-dev
+    - dpkg-buildpackage -uc -us
+    - mkdir -p build
+    - mv ../pcapmirror*.* build/
+
+  artifacts:
+    paths:
+      - build/*.deb
+      - build/*.dsc
+      - build/*.tar.xz
+      - build/*.changes
+      - build/*.buildinfo
+      - build/*.diff.gz
