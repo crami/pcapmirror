@@ -1,6 +1,6 @@
 
 stages:
-  - build-bookworm
+  - build
   
 variables:
   DEBIAN_FRONTEND: noninteractive
