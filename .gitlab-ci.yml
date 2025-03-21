@@ -10,6 +10,7 @@ build-bookworm:
   tags:
     - bookworm
   script:
+    - tar -czvf ../pcapmirror_0.2.orig.tar.gz --exclude=debian .
     - debuild -us -uc
     - mkdir -p build
     - mv ../pcapmirror*.* build/
