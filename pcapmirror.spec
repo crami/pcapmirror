@@ -24,4 +24,5 @@ pcapmirror is a command-line tool for capturing and mirroring network traffic us
 %doc README.md
 
 %changelog
-%autochangelog
+* %(date +%s) - 0.2-1
+- Initial release of pcapmirror
