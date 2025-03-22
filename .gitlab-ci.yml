@@ -57,6 +57,7 @@ build-rocky9:
     - rocky9
   script:
     - dnf install -y libpcap-devel
+    - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
     - cp * /root/rpmbuild/BUILD
     - rpmbuild -ba pcapmirror.spec
     - mkdir -p build
