@@ -71,7 +71,7 @@ build-rocky9:
     paths:
       - build/*
 
-build-rocky9:
+build-rocky8:
   stage: build
   only:
     - tags
