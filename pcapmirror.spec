@@ -20,8 +20,10 @@ pcapmirror is a command-line tool for capturing and mirroring network traffic us
 
 %files
 %{_bindir}/pcapmirror
+%{_mandir}/man1/pcapmirror.8.gz
 %license LICENSE
 %doc README.md
+
 
 %changelog
 * Sat Mar 22 2025 Matthias Cramer <cramer@freesone.net> 0.2-1

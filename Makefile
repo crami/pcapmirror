@@ -22,7 +22,7 @@ TARGET = pcapmirror
 PREFIX = /usr
 
 # Default rule
-all: $(TARGET)
+all: $(TARGET) man
 
 # Create executable
 $(TARGET): $(OBJS)
@@ -32,6 +32,9 @@ $(TARGET): $(OBJS)
 %.o: %.c
 		$(CC) $(CFLAGS) -c $< -o $@
 
+man:
+	gzip -9 -c pcapmirror.8 > pcapmirror.8.gz
+
 # Clean up object files and executable
 clean:
 		rm -f -f $(OBJS) $(TARGET)
@@ -39,11 +42,14 @@ clean:
 # Install the executable
 install: $(TARGET)
 		mkdir -p $(DESTDIR)$(PREFIX)/bin
-		install -D  $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
+		install -D $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
+		install -D $(TARGET).8 $(DESTDIR)$(PREFIX)/share/man/man8/$(TARGET).8
+		
 
 # Uninstall the executable
 uninstall:
 		rm -f $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
+		rm -f $(TARGET).8 $(DESTDIR)$(PREFIX)/share/man/man8/$(TARGET).8
 
 # Run the executable (example)
 run: $(TARGET)
