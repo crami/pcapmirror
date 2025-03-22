@@ -1,6 +1,7 @@
 *~
 *.o
+*.gz
 pcapmirror
 debian/debhelper-build-stamp
 debian/pcapmirror.substvars
-*.gz
+debian/files

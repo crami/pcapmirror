@@ -49,7 +49,7 @@ install: $(TARGET)
 # Uninstall the executable
 uninstall:
 		rm -f $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
-		rm -f $(TARGET).8 $(DESTDIR)$(PREFIX)/share/man/man8/$(TARGET).8
+		rm -f $(TARGET).8.gz $(DESTDIR)$(PREFIX)/share/man/man8/$(TARGET).8.gz
 
 # Run the executable (example)
 run: $(TARGET)
