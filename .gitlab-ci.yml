@@ -56,8 +56,8 @@ build-rocky9:
   tags:
     - rocky9
   script:
-    - rpmbuild -ba pcapmirror.spec
     - dnl install -y libpcap-devel
+    - rpmbuild -ba pcapmirror.spec
     - mkdir -p build
     - mv /root/rpmbuild/RPMS/x86_64/pcapmirror*.* build/
     - mv /root/rpmbuild/SRPMS/pcapmirror*.* build/
