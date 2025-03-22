@@ -1,6 +1,6 @@
 Name:     pcapmirror
 Version:  0.2
-Release:  %{?dist}
+Release:  %(perl -e 'print time()')%{?dist}
 Summary:  A simple packet capture mirror
 License:  BSD 3-Clause License
 URL:      https://git.freestone.net/cramer/pcapmirror
