@@ -35,7 +35,7 @@ publish-bookworm:
     - apt-get update && apt-get install -y curl
     - ls -la build
     - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/bookworm/pcapmirror_0.3-1_amd64.deb"'
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/bookworm/pcapmirror_0.3-1_amd64.deb'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/bookworm/pcapmirror_0.3-1_amd64.deb'
 
 build-sid:
   stage: build
@@ -66,7 +66,7 @@ publish-sid:
     - apt-get update && apt-get install -y curl
     - ls -la build
     - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sid/pcapmirror_0.3-1_amd64.deb"'
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/sid/pcapmirror_0.3-1_amd64.deb'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sid/pcapmirror_0.3-1_amd64.deb'
 
 build-rocky9:
   stage: build
@@ -100,7 +100,7 @@ publish-rocky9:
     - apt-get update && apt-get install -y curl
     - ls -la build
     - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/rockylinux9/pcapmirror-0.3-1.el8.x86_64.rpm"'
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-0.3-*.el9.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/rockylinux9/pcapmirror-0.3-1.el8.x86_64.rpm'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-0.3-*.el9.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/rockylinux9/pcapmirror-0.3-1.el8.x86_64.rpm'
 
 build-rocky8:
   stage: build
@@ -134,4 +134,4 @@ publish-rocky8:
     - apt-get update && apt-get install -y curl
     - ls -la build
     - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/rockylinux8/pcapmirror-0.3-1.el8.x86_64.rpm"'
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-0.3-*.el8.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/rockylinux8/pcapmirror-0.3-1.el8.x86_64.rpm'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-0.3-*.el8.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/rockylinux8/pcapmirror-0.3-1.el8.x86_64.rpm'
