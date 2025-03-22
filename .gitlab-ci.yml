@@ -12,7 +12,7 @@ build-bookworm:
   tags:
     - bookworm
   script:
-    - tar -czf ../pcapmirror_0.2.orig.tar.gz --exclude=debian .
+    - tar -czf ../pcapmirror_0.3.orig.tar.gz --exclude=debian .
     - apt-get update && apt-get install -y libpcap-dev
     - dpkg-buildpackage -uc -us
     - mkdir -p build
@@ -35,7 +35,7 @@ build-sid:
   tags:
     - sid
   script:
-    - tar -czf ../pcapmirror_0.2.orig.tar.gz --exclude=debian .
+    - tar -czf ../pcapmirror_0.3.orig.tar.gz --exclude=debian .
     - apt-get update && apt-get install -y libpcap-dev
     - dpkg-buildpackage -uc -us
     - mkdir -p build
@@ -60,7 +60,7 @@ build-rocky9:
   script:
     - dnf install -y libpcap-devel
     - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-v0.2.tar.gz --exclude=debian --exclude=.git .
+    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-0.3.tar.gz --exclude=debian --exclude=.git .
     - cp -r * /root/rpmbuild/BUILD
     - rpmbuild -ba pcapmirror.spec
     - mkdir -p build
@@ -80,7 +80,7 @@ build-rocky8:
   script:
     - dnf install -y libpcap-devel
     - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-v0.2.tar.gz --exclude=debian --exclude=.git .
+    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-0.3.tar.gz --exclude=debian --exclude=.git .
     - cp -r * /root/rpmbuild/BUILD
     - rpmbuild -ba pcapmirror.spec
     - mkdir -p build

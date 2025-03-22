@@ -1,5 +1,5 @@
 Name:     pcapmirror
-Version:  0.2
+Version:  0.3
 Release:  %(perl -e 'print time()')%{?dist}
 Summary:  A simple packet capture mirror
 License:  BSD 3-Clause License
@@ -26,5 +26,7 @@ pcapmirror is a command-line tool for capturing and mirroring network traffic us
 
 
 %changelog
+* Sat Mar 22 2025 Matthias Cramer <cramer@freesone.net> 0.3-1
+- added manpage
 * Sat Mar 22 2025 Matthias Cramer <cramer@freesone.net> 0.2-1
 - Initial release of pcapmirror
