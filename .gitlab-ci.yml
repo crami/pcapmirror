@@ -58,7 +58,7 @@ build-rocky9:
   script:
     - dnf install -y libpcap-devel
     - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-    - tar -czf /root/rpmbuild/SOURCES/pcapmirror_0.2.tar.gz --exclude=debian --exclude=.git .
+    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-v0.2.tar.gz --exclude=debian --exclude=.git .
     - cp -r * /root/rpmbuild/BUILD
     - rpmbuild -ba pcapmirror.spec
     - mkdir -p build
