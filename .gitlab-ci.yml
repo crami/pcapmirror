@@ -7,6 +7,8 @@ variables:
 
 build-bookworm:
   stage: build
+  only:
+    - tags
   tags:
     - bookworm
   script:
@@ -27,6 +29,8 @@ build-bookworm:
 
 build-sid:
   stage: build
+  only:
+    - tags
   tags:
     - sid
   script:
