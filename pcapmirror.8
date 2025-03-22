@@ -1,0 +1,52 @@
+.TH PCAPMIRROR 1 "March 22, 2025" "pcapmirror 0.2" "User Commands"
+.SH NAME
+pcapmirror \- A command-line tool for capturing and mirroring network traffic
+
+.SH SYNOPSIS
+.B pcapmirror
+[\fIoptions\fR]
+
+.SH DESCRIPTION
+.B pcapmirror
+is a command-line tool for capturing network traffic and mirroring it to a remote destination using TZSP encapsulation. It leverages the \fBlibpcap\fR library for packet capture and provides options for filtering traffic based on BPF syntax. This tool is useful for network monitoring, intrusion detection, and remote packet analysis.
+
+.SH OPTIONS
+.TP
+.B \-i \fIinterface\fR
+Specify the capture interface (e.g., eth0).
+.TP
+.B \-f \fIfilter\fR
+Specify the capture filter in BPF syntax (e.g., tcp port 80).
+.TP
+.B \-r \fIip_address\fR
+Specify the destination IP address (required).
+.TP
+.B \-p \fIport\fR
+Specify the destination port (default: 37008).
+.TP
+.B \-v
+Enable verbose mode (prints packet information).
+.TP
+.B \-h
+Show this help message.
+
+.SH EXAMPLES
+To capture traffic on the eth0 interface, filter for TCP port 80, and send it to the destination, use the following command:
+
+.EX
+sudo pcapmirror -i eth0 -f "tcp port 80" -r 192.168.1.100 -p 47008 -v
+.EE
+
+.SH USAGE WITH WIRESHARK
+With this tool, you can mirror traffic directly to a running Wireshark.
+
+To avoid capturing traffic from your own monitoring machine, configure Wireshark with a capture filter of udp port 37008 or udp dst port 37008. Also, verify that your firewall permits this UDP traffic.
+
+.SH SEE ALSO
+.BR bpf (2), tcpdump (1), wireshark (1), pcap (3)
+
+.SH AUTHOR
+Matthias Cramer <cramer@freestone.net>
+
+.SH COPYRIGHT
+Copyright (c) 2025, Matthias Cramer. All rights reserved.
