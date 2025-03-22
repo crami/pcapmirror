@@ -73,6 +73,8 @@ build-rocky9:
 
 build-rocky9:
   stage: build
+  only:
+    - tags
   tags:
     - rocky8
   script:
