@@ -51,7 +51,7 @@ build-sid:
       - build/*.buildinfo
       - build/*.diff.gz
 
-build-rocky9
+build-rocky9:
   stage: build
   tags:
     - rocky9
