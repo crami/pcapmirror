@@ -157,14 +157,11 @@ build-pios12:
   tags:
     - pios12
   script:
-    - dnf install -y libpcap-devel
-    - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-v0.3.tar.gz --exclude=debian --exclude=.git .
-    - cp -r * /root/rpmbuild/BUILD
-    - rpmbuild -ba pcapmirror.spec
+    - tar -czf ../pcapmirror_0.3.orig.tar.gz --exclude=debian .
+    - apt-get update && apt-get install -y libpcap-dev
+    - dpkg-buildpackage -uc -us
     - mkdir -p build
-    - mv /root/rpmbuild/RPMS/x86_64/pcapmirror*.* build/
-    - mv /root/rpmbuild/SRPMS/pcapmirror*.* build/
+    - mv ../pcapmirror*.* build/
 
   artifacts:
     paths:
