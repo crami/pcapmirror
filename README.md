@@ -12,12 +12,14 @@ pcapmirror [options]
 
 ### Options:
 
-* -i <interface>: Specify the capture interface (e.g., eth0).
-* -f <filter>: Specify the capture filter in BPF syntax (e.g., tcp port 80).
-* -r <ip_address>: Specify the destination IP address (required).
-* -p <port>: Specify the destination port (default: 37008).
-* -v: Enable verbose mode (prints packet information).
-* -h: Show this help message.
+* -i <interface> Specify the capture interface
+* -f <filter> Specify the capture filter (BPF syntax)
+* -r <host/ipv4/ipv6> Specify the destination host (required)
+* -p <port> Specify the destination port (default: 37008)
+* -4 Force IPv4 host lookup
+* -6 Force IPv6 host lookup
+* -v Enable verbose mode
+* -h Show this help message
 
 ### Example:
 

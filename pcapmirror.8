@@ -18,11 +18,17 @@ Specify the capture interface (e.g., eth0).
 .B \-f \fIfilter\fR
 Specify the capture filter in BPF syntax (e.g., tcp port 80).
 .TP
-.B \-r \fIip_address\fR
-Specify the destination IP address (required).
+.B \-r \fIhost/ipv4/ipv6\fR
+Specify the destination host (required).
 .TP
 .B \-p \fIport\fR
 Specify the destination port (default: 37008).
+.TP
+.B \-4
+Force IPv4 host lookup.
+.TP
+.B \-6
+Force IPv6 host lookup.
 .TP
 .B \-v
 Enable verbose mode (prints packet information).
