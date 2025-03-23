@@ -201,7 +201,7 @@ build-pios12-64:
     paths:
       - build
 
-publish-pios12:
+publish-pios12-64:
   stage: publish
   needs:
     - build-pios12-64
