@@ -154,8 +154,11 @@ build-pios12:
   needs: []
   only:
     - tags
+  parallel:
+    matrix:
+      - BUILDER: [pios12, pios12-64]
   tags:
-    - pios12
+    - ${BUILDER}
   script:
     - tar -czf ../pcapmirror_0.3.orig.tar.gz --exclude=debian .
     - apt-get update && apt-get install -y libpcap-dev
@@ -170,9 +173,9 @@ build-pios12:
 publish-pios12:
   stage: publish
   needs:
-    - build-pios12
+    - "build-pios12: [pios12, pios12-64]"
   dependencies:
-    - build-pios12
+    - "build-pios12: [pios12, pios12-64]"
   only:
     - tags
   tags:
