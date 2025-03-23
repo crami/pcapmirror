@@ -173,7 +173,7 @@ build-pios12:
 publish-pios12:
   stage: publish
   needs:
-    - build-rpios12
+    - build-pios12
   dependencies:
     - build-pios12
   only:
