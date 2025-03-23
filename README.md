@@ -1,4 +1,7 @@
+
 # pcapmirror
+![pcapmirror logo](logo/pcapmirror_logo_small.png)
+
 pcapmirror is a command-line tool for capturing network traffic and mirroring it to a remote destination using [TZSP encapsulation](https://en.wikipedia.org/wiki/TZSP). It leverages the `libpcap` library for packet capture and provides options for filtering traffic based on BPF syntax. This tool is useful for network monitoring, intrusion detection, and remote packet analysis.
 
 ## Usage
@@ -45,7 +48,7 @@ make install
 
 This will copy the pcapmirror executable to bin. You may need to adjust the PREFIX variable in the Makefile if you want to install it to a different location.
 
-Dependencies
+### Dependencies
 libpcap: You need to have libpcap installed on your system. On Debian/Ubuntu systems, you can install it using:
 ```bash
 sudo apt-get install libpcap-dev
@@ -57,7 +60,7 @@ sudo yum install libpcap-devel
 ```
 ## Build debian package
 
-If you have never built a debian pakage you probably need debhelper:
+If you have never built a debian package you probably need debhelper:
 ```bash
 sudo apt-get install debhelper
 ```
