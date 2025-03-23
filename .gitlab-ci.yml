@@ -38,7 +38,6 @@ publish-bookworm:
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
-    - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_0.3-1_amd64.deb"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_0.3-1_amd64.deb'
 
 build-sid:
@@ -72,7 +71,6 @@ publish-sid:
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
-    - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/sid/pcapmirror_0.3-1_amd64.deb"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/sid/pcapmirror_0.3-1_amd64.deb'
 
 build-rocky9:
@@ -109,7 +107,6 @@ publish-rocky9:
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
-    - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux9/pcapmirror-0.3-1.el8.x86_64.rpm"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-0.3-*.el9.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux9/pcapmirror-0.3-1.el8.x86_64.rpm'
 
 build-rocky8:
@@ -146,7 +143,6 @@ publish-rocky8:
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
-    - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux8/pcapmirror-0.3-1.el8.x86_64.rpm"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-0.3-*.el8.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux8/pcapmirror-0.3-1.el8.x86_64.rpm'
 
 build-pios12:
@@ -180,7 +176,6 @@ publish-pios12:
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
-    - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_0.3-1_armhf.deb"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_armhf.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_0.3-1_armhf.deb'
 
 build-pios12-64:
@@ -214,5 +209,4 @@ publish-pios12-64:
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
-    - 'echo "Uploading to: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_0.3-1_armhf.deb"'
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_armhf.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_0.3-1_armhf.deb'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_0.3-1_arm64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_0.3-1_arm64.deb'
