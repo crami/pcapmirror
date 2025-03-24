@@ -1,3 +1,11 @@
+pcapmirror (0.4-1) unstable; urgency=medium
+
+  * IPv6 support for remote destination
+  * remote destination can now also be hostname
+  * added option to enforce IPv4 and IPv6 for remote destination
+
+ -- Matthias Cramer <cramer@freestone.net>  Fri, 24 Mar 2025 13:40:00 +0100
+
 pcapmirror (0.3-1) unstable; urgency=medium
 
   * added manpage

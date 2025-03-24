@@ -36,6 +36,14 @@ With this tool, you can mirror traffic directly to a running [Wireshark](https:/
 
 To avoid capturing traffic from your own monitoring machine, configure Wireshark with a capture filter of udp port 37008 or udp dst port 37008. Also, verify that your firewall permits this UDP traffic.
 
+## Original Download Location
+
+[https://git.freestone.net/cramer/pcapmirror](https://git.freestone.net/cramer/pcapmirror)
+
+## Packages
+
+On the original download location you will also find several prebuilt packages.
+
 ## Compile and Install
 
 Compile the program:
