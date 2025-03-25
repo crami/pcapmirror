@@ -41,6 +41,25 @@ int is_little_endian() {
     return (((unsigned char*)&i)[0] == 0x67);
 }
 
+void list_interfaces() {
+    pcap_if_t *alldevs;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    if (pcap_findalldevs(&alldevs, errbuf) == -1) {
+        fprintf(stderr, "Error in pcap_findalldevs: %s\n", errbuf);
+        return;
+    }
+    printf("Available network interfaces:\n");
+    for (pcap_if_t *d = alldevs; d != NULL; d = d->next) {
+        printf("%s", d->name);
+        if (d->description) {
+            printf(" (%s)", d->description);
+        }
+        printf("\n");
+    }
+    pcap_freealldevs(alldevs);
+}
+
+
 void print_usage(const char *program_name) {
     printf("Usage: %s [options]\n", program_name);
     printf("Options:\n");
@@ -50,6 +69,7 @@ void print_usage(const char *program_name) {
     printf("  -p <port>            Specify the destination port (default: %d)\n", DEFAULT_DEST_PORT);
     printf("  -4                   Force IPv4 host lookup\n");
     printf("  -6                   Force IPv6 host lookup\n");
+    printf("  -l                   List available network interfaces\n");
     printf("  -v                   Enable verbose mode\n");
     printf("  -h                   Show this help message\n");
     printf("Example:\n");
@@ -67,6 +87,7 @@ int main(int argc, char *argv[]) {
     int verbose = 0; // Verbose flag, default is false
     int force_ipv4 = 0; // Flag to force IPv4 lookup
     int force_ipv6 = 0; // Flag to force IPv6 lookup
+    int list_interfaces_flag = 0; // Flag to list interfaces
 
     // Socket variables
     int sockfd;
@@ -102,11 +123,18 @@ int main(int argc, char *argv[]) {
             force_ipv4 = 1; // Force IPv4 lookup
         } else if (strcmp(argv[i], "-6") == 0) {
             force_ipv6 = 1; // Force IPv6 lookup
+        } else if (strcmp(argv[i], "-l") == 0) {
+            list_interfaces_flag = 1; // Set flag to list interfaces
         }
     }
 
+    if (list_interfaces_flag) {
+        list_interfaces();
+        return 0;
+    }
+
     // Check if destination IP is provided
-    if (mirror_host == NULL) {
+    if (mirror_host == NULL && !list_interfaces_flag) {
         fprintf(stderr, "Error: Destination IP address is required.\n");
         print_usage(argv[0]);
         return 1;
@@ -172,14 +200,14 @@ int main(int argc, char *argv[]) {
             return(1);
         }
 
-        // Print the available devices for debugging
-        /*
-        pcap_if_t *device;
-        printf("Available devices:\n");
-        for (device = alldevs; device != NULL; device = device->next) {
-            printf("%s - %s\n", device->name, (device->description != NULL) ? device->description : "No description available");
+        
+        if (list_interfaces_flag) {
+            pcap_if_t *device;
+            printf("Available devices:\n");
+            for (device = alldevs; device != NULL; device = device->next) {
+                printf("%s - %s\n", device->name, (device->description != NULL) ? device->description : "No description available");
+            }
         }
-        */
 
         // Use the first device if no device is specified
         if (alldevs == NULL) {

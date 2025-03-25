@@ -18,6 +18,7 @@ pcapmirror [options]
 * -p <port> Specify the destination port (default: 37008)
 * -4 Force IPv4 host lookup
 * -6 Force IPv6 host lookup
+* -l List available network interfaces.
 * -v Enable verbose mode
 * -h Show this help message
 
