@@ -14,6 +14,7 @@ Copyright (c) 2025, Matthias Cramer, cramer@freestone.net
 #include <arpa/inet.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -61,7 +62,6 @@ void list_interfaces() {
     pcap_freealldevs(alldevs);
 }
 
-
 void print_usage(const char *program_name) {
     printf("Usage: %s [options]\n", program_name);
     printf("Options:\n");
@@ -79,7 +79,6 @@ void print_usage(const char *program_name) {
 }
 
 int main(int argc, char *argv[]) {
-    pcap_if_t *alldevs;
     char errbuf[PCAP_ERRBUF_SIZE];
     char *filter_exp = "tcp port 8088"; // Default filter
     char *dev_name = NULL; // Device name
@@ -201,34 +200,6 @@ int main(int argc, char *argv[]) {
     printf("Resolved Destination IP: %s\n", resolved_ip);
     printf("Destination Port: %d\n", dest_port);
 
-    // If no interface is specified, find all devices
-    if (dev_name == NULL) {
-        if (pcap_findalldevs(&alldevs, errbuf) == -1) {
-            fprintf(stderr, "Error in pcap_findalldevs: %s\n", errbuf);
-            return(1);
-        }
-
-        
-        if (list_interfaces_flag) {
-            pcap_if_t *device;
-            printf("Available devices:\n");
-            for (device = alldevs; device != NULL; device = device->next) {
-                printf("%s - %s\n", device->name, (device->description != NULL) ? device->description : "No description available");
-            }
-        }
-
-        // Use the first device if no device is specified
-        if (alldevs == NULL) {
-            fprintf(stderr, "No devices found. Make sure you have permissions to capture traffic.\n");
-            return 1;
-        }
-
-        dev_name = alldevs->name; // Use the name of the first device
-    } else {
-        // Interface specified via command line, no need to find all devices
-        alldevs = NULL; // Set alldevs to NULL to avoid potential issues
-    }
-
     pcap_t *handle;
     struct bpf_program fp;
     bpf_u_int32 mask;
@@ -243,26 +214,17 @@ int main(int argc, char *argv[]) {
     handle = pcap_open_live(dev_name, BUFSIZ, 1, 1000, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev_name, errbuf);
-        if (alldevs != NULL) {
-            pcap_freealldevs(alldevs);
-        }
         return(2);
     }
 
     if (pcap_compile(handle, &fp, filter_exp, 1, net) == -1) {
         fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
-        if (alldevs != NULL) {
-            pcap_freealldevs(alldevs);
-        }
         pcap_close(handle);
         return(2);
     }
 
     if (pcap_setfilter(handle, &fp) == -1) {
         fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
-        if (alldevs != NULL) {
-            pcap_freealldevs(alldevs);
-        }
         pcap_close(handle);
         return(2);
     }
@@ -343,9 +305,6 @@ int main(int argc, char *argv[]) {
 
     pcap_freecode(&fp);
     pcap_close(handle);
-    if (alldevs != NULL) {
-        pcap_freealldevs(alldevs); // Free the device list only if devices were found
-    }
     close(sockfd);
     return(0);
 }
