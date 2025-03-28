@@ -11,6 +11,7 @@ Copyright (c) 2025, Matthias Cramer, cramer@freestone.net
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <netinet/tcp.h>
+#include <netinet/if_ether.h> // For Ethernet and ARP headers
 #include <arpa/inet.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -18,7 +19,6 @@ Copyright (c) 2025, Matthias Cramer, cramer@freestone.net
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <netinet/ip6.h>
 
 #define DEFAULT_DEST_PORT 37008 // Default TZSP port
 #define TZSP_ENCAP_LEN 4       // Length of TZSP encapsulation header
@@ -36,6 +36,19 @@ struct tzsp_header {
 // TZSP Tagged Field Structure
 struct tzsp_tagged {
     unsigned char type;         // Tag type
+};
+
+// Add this structure for ARP header parsing
+struct arp_header {
+    uint16_t htype;    // Hardware type
+    uint16_t ptype;    // Protocol type
+    uint8_t hlen;      // Hardware address length
+    uint8_t plen;      // Protocol address length
+    uint16_t oper;     // Operation (1 = request, 2 = reply)
+    uint8_t sha[6];    // Sender hardware address
+    uint8_t spa[4];    // Sender protocol address
+    uint8_t tha[6];    // Target hardware address
+    uint8_t tpa[4];    // Target protocol address
 };
 
 // Function to check if the system is little-endian
@@ -80,7 +93,7 @@ void print_usage(const char *program_name) {
 
 int main(int argc, char *argv[]) {
     char errbuf[PCAP_ERRBUF_SIZE];
-    char *filter_exp = "tcp port 8088"; // Default filter
+    char *filter_exp = ""; // Default filter
     char *dev_name = NULL; // Device name
     char *mirror_host = NULL; // Destination IP, no default value
     int dest_port = DEFAULT_DEST_PORT; // Destination port, default value
@@ -171,6 +184,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    memset(&dest_addr, 0, sizeof(dest_addr));
+
     // Set the destination address
     if (res->ai_family == AF_INET) {
         struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
@@ -242,27 +257,47 @@ int main(int argc, char *argv[]) {
             continue;
 
         if (verbose) {
-            // Check IP version
-            ip_header = (struct ip*)(packet + ETHERNET_HEADER_LENGTH);
-            ip_protocol = ip_header->ip_v & 0x0F; // Get IP version
 
-            if (ip_protocol == 4) {
-                inet_ntop(AF_INET, &(ip_header->ip_src.s_addr), source_ip_str, INET6_ADDRSTRLEN);
-                inet_ntop(AF_INET, &(ip_header->ip_dst.s_addr), dest_ip_str, INET6_ADDRSTRLEN);
-                
-                printf("IPv4 Packet: %s -> %s, IP Protocol: %d\n",
-                    source_ip_str, dest_ip_str, ip_header->ip_p);
-                
-            } else if (ip_protocol == 6) {
-                // IPv6
-                ip6_header = (struct ip6_hdr*)(packet + ETHERNET_HEADER_LENGTH);
+            // Parse Ethernet header
+            struct ether_header *eth_header = (struct ether_header *)packet;
+
+            // Check EtherType
+            uint16_t ether_type = ntohs(eth_header->ether_type);
+
+            if (ether_type == ETHERTYPE_IP) {
+                // Handle IPv4 traffic
+                ip_header = (struct ip *)(packet + ETHERNET_HEADER_LENGTH);
+                ip_protocol = ip_header->ip_v & 0x0F; // Get IP version
+        
+                if (ip_protocol == 4) {
+                    inet_ntop(AF_INET, &(ip_header->ip_src.s_addr), source_ip_str, INET6_ADDRSTRLEN);
+                    inet_ntop(AF_INET, &(ip_header->ip_dst.s_addr), dest_ip_str, INET6_ADDRSTRLEN);
+        
+                    printf("IPv4 Packet: %s -> %s, IP Protocol: %d\n",
+                           source_ip_str, dest_ip_str, ip_header->ip_p);
+                }
+            } else if (ether_type == ETHERTYPE_IPV6) {
+                // Handle IPv6 traffic
+                ip6_header = (struct ip6_hdr *)(packet + ETHERNET_HEADER_LENGTH);
                 inet_ntop(AF_INET6, &(ip6_header->ip6_src), source_ip_str, INET6_ADDRSTRLEN);
                 inet_ntop(AF_INET6, &(ip6_header->ip6_dst), dest_ip_str, INET6_ADDRSTRLEN);
-
+        
                 printf("IPv6 Packet: %s -> %s, Next Header: %d\n",
-                    source_ip_str, dest_ip_str, ip6_header->ip6_nxt);
+                       source_ip_str, dest_ip_str, ip6_header->ip6_nxt);
+            } else if (ether_type == ETHERTYPE_ARP) {
+                // Handle ARP traffic
+                struct arp_header *arp = (struct arp_header *)(packet + ETHERNET_HEADER_LENGTH);
+        
+                printf("ARP Packet: Operation: %s\n",
+                       (ntohs(arp->oper) == 1) ? "Request" : "Reply");
+                printf("Sender MAC: %02x:%02x:%02x:%02x:%02x:%02x, Sender IP: %d.%d.%d.%d\n",
+                       arp->sha[0], arp->sha[1], arp->sha[2], arp->sha[3], arp->sha[4], arp->sha[5],
+                       arp->spa[0], arp->spa[1], arp->spa[2], arp->spa[3]);
+                printf("Target MAC: %02x:%02x:%02x:%02x:%02x:%02x, Target IP: %d.%d.%d.%d\n",
+                       arp->tha[0], arp->tha[1], arp->tha[2], arp->tha[3], arp->tha[4], arp->tha[5],
+                       arp->tpa[0], arp->tpa[1], arp->tpa[2], arp->tpa[3]);
             } else {
-                printf("Non-IP Packet, Protocol: %i\n", ip_protocol);
+                printf("Non-IP/ARP Packet, EtherType: 0x%04x\n", ether_type);
             }
         }
 
