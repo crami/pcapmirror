@@ -6,19 +6,18 @@ Copyright (c) 2025, Matthias Cramer, cramer@freestone.net
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <pcap.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
-#include <netinet/tcp.h>
+#include <net/if_arp.h>
 #include <netinet/if_ether.h> // For Ethernet and ARP headers
 #include <arpa/inet.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <netdb.h>
-#include <netinet/in.h>
-#include <unistd.h>
 
 #define DEFAULT_DEST_PORT 37008 // Default TZSP port
 #define TZSP_ENCAP_LEN 4       // Length of TZSP encapsulation header
