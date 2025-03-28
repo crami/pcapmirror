@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
     int sockfd;
     struct addrinfo hints, *res;
     struct sockaddr_storage dest_addr; // Declare dest_addr
+    int dest_addr_size;
 
     // Check if no arguments are given or if help is requested
     if (argc == 1 || (argc == 2 && strcmp(argv[1], "-h") == 0)) {
@@ -172,6 +173,17 @@ int main(int argc, char *argv[]) {
 
     if (getaddrinfo(mirror_host, NULL, &hints, &res) != 0) {
         perror("getaddrinfo");
+        return 1;
+    }
+
+    // Calculate dest_addr size
+    if (res->ai_family == AF_INET) {
+        dest_addr_size = sizeof(struct sockaddr_in);
+    } else if (res->ai_family == AF_INET6) {
+        dest_addr_size = sizeof(struct sockaddr_in6);
+    } else {
+        fprintf(stderr, "Unknown address family\n");
+        freeaddrinfo(res);
         return 1;
     }
 
@@ -330,7 +342,7 @@ int main(int argc, char *argv[]) {
         memcpy(ptr, packet, header.caplen);
 
         // Send packet via UDP with TZSP encapsulation
-        if (sendto(sockfd, tzsp_packet, total_length, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1) {
+        if (sendto(sockfd, tzsp_packet, total_length, 0, (struct sockaddr *)&dest_addr, dest_addr_size) == -1) {
             perror("sendto");
         }
 
