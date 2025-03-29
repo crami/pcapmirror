@@ -5,7 +5,7 @@ stages:
   
 variables:
   DEBIAN_FRONTEND: noninteractive
-  VERSION: 0.4
+  VERSION: 0.5
 
 build-bookworm:
   stage: build

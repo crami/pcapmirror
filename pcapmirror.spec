@@ -1,5 +1,5 @@
 Name:     pcapmirror
-Version:  0.4
+Version:  0.5
 Release:  %(perl -e 'print time()')%{?dist}
 Summary:  A simple packet capture mirror
 License:  BSD 3-Clause License
@@ -26,7 +26,11 @@ pcapmirror is a command-line tool for capturing and mirroring network traffic us
 
 
 %changelog
-* Sat Mar 24 2025 Matthias Cramer <cramer@freesone.net> 0.4-1
+* Sat Mar 29 2025 Matthias Cramer <cramer@freesone.net> 0.5-1
+- new option -c to count matching packets (overrides verbose mode)
+- reworked packet decoder to also decode arp
+- works now on MacOS and OpenBSD
+* Mon Mar 24 2025 Matthias Cramer <cramer@freesone.net> 0.4-1
 - IPv6 support for remote destination
 - remote destination can now also be hostname
 - added option to enforce IPv4 and IPv6 for remote destination

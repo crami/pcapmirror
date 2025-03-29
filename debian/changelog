@@ -1,3 +1,11 @@
+pcapmirror (0.5-1) unstable; urgency=medium
+
+  * new option -c to count matching packets (overrides verbose mode)
+  * reworked packet decoder to also decode arp
+  * works now on MacOS and OpenBSD
+
+ -- Matthias Cramer <cramer@freestone.net>  Fri, 29 Mar 2025 13:40:00 +0100
+
 pcapmirror (0.4-1) unstable; urgency=medium
 
   * IPv6 support for remote destination
