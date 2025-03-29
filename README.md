@@ -20,6 +20,7 @@ pcapmirror [options]
 * -6 Force IPv6 host lookup
 * -l List available network interfaces.
 * -v Enable verbose mode
+* -c Count matching packets (overrides verbose mode)
 * -h Show this help message
 
 ### Example:
@@ -46,6 +47,15 @@ To avoid capturing traffic from your own monitoring machine, configure Wireshark
 On the original download location you will also find several prebuilt packages.
 
 ## Compile and Install
+
+### Supported Operating Systems
+Source is tested to build and function on the following operating systems
+
+* Debian Linux 12 + unstable (sid)
+* Rocky Linux 8 + 9
+* PiOS 12 (bookworm)
+* OpenBSD 7.6
+* MacOS 15
 
 Compile the program:
 ```bash

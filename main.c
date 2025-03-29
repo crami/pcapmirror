@@ -18,6 +18,7 @@ Copyright (c) 2025, Matthias Cramer, cramer@freestone.net
 #include <netinet/if_ether.h> // For Ethernet and ARP headers
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sys/time.h>
 
 #define DEFAULT_DEST_PORT 37008 // Default TZSP port
 #define TZSP_ENCAP_LEN 4       // Length of TZSP encapsulation header
@@ -85,6 +86,7 @@ void print_usage(const char *program_name) {
     printf("  -6                   Force IPv6 host lookup\n");
     printf("  -l                   List available network interfaces\n");
     printf("  -v                   Enable verbose mode\n");
+    printf("  -c                   Count matching packets (overrides verbose mode)\n");
     printf("  -h                   Show this help message\n");
     printf("Example:\n");
     printf("  %s -i eth0 -f 'tcp port 80' -v -r 192.168.1.100 -p 47008\n", program_name);
@@ -101,6 +103,10 @@ int main(int argc, char *argv[]) {
     int force_ipv4 = 0; // Flag to force IPv4 lookup
     int force_ipv6 = 0; // Flag to force IPv6 lookup
     int list_interfaces_flag = 0; // Flag to list interfaces
+
+    // Add a variable to track the count of matching packets
+    int count_packets = 0; // Flag for counting packets
+    unsigned long long int packet_count = 0;  // Counter for matching packets (64bit)
 
     // Socket variables
     int sockfd;
@@ -139,6 +145,9 @@ int main(int argc, char *argv[]) {
             force_ipv6 = 1; // Force IPv6 lookup
         } else if (strcmp(argv[i], "-l") == 0) {
             list_interfaces_flag = 1; // Set flag to list interfaces
+        } else if (strcmp(argv[i], "-c") == 0) {
+            count_packets = 1; // Enable packet counting
+            verbose = 0;       // Disable verbose mode if -c is set
         }
     }
 
@@ -237,7 +246,7 @@ int main(int argc, char *argv[]) {
         mask = 0;
     }
 
-    handle = pcap_open_live(dev_name, BUFSIZ, 1, 1000, errbuf);
+    handle = pcap_open_live(dev_name, BUFSIZ, 1, 100, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev_name, errbuf);
         return(2);
@@ -261,11 +270,30 @@ int main(int argc, char *argv[]) {
     struct ip *ip_header; // Declare ip4_header
     struct ip6_hdr *ip6_header; // Declare ip6_header
     int ip_protocol = 0;
+    struct timeval current_time, last_count;
+
+    gettimeofday(&last_count, NULL);
+    printf("\n");
 
     while (1) {
         packet = pcap_next(handle, &header);
         if (packet == NULL)
             continue;
+
+        if (count_packets) {
+            packet_count++;
+
+            gettimeofday(&current_time, NULL);
+
+            long elapsed_ms = current_time.tv_sec * 1000 + (current_time.tv_usec /1000)-
+                              (last_count.tv_sec * 1000 + (last_count.tv_usec /1000));
+
+            if (elapsed_ms >= 500) {
+                printf("\rPacket count: %llu", packet_count);
+                fflush(stdout);
+                last_count = current_time; // Reset the timer
+            }
+        }
 
         if (verbose) {
 
