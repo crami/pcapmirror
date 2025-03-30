@@ -1,6 +1,7 @@
 
 stages:
   - build
+  - publish
   
 variables:
   DEBIAN_FRONTEND: noninteractive
@@ -25,7 +26,7 @@ build-bookworm:
       - build
 
 publish-bookworm:
-  stage: build
+  stage: publish
   needs:
     - build-bookworm
   dependencies:
@@ -58,7 +59,7 @@ build-sid:
       - build
 
 publish-sid:
-  stage: build
+  stage: publish
   needs:
     - build-sid
   dependencies:
@@ -94,7 +95,7 @@ build-rocky9:
       - build
 
 publish-rocky9:
-  stage: build
+  stage: publish
   needs:
     - build-rocky9
   dependencies:
@@ -130,7 +131,7 @@ build-rocky8:
       - build
 
 publish-rocky8:
-  stage: build
+  stage: publish
   needs:
     - build-rocky8
   dependencies:
@@ -163,7 +164,7 @@ build-pios12:
       - build
 
 publish-pios12:
-  stage: build
+  stage: publish
   needs:
     - build-pios12
   dependencies:
@@ -196,7 +197,7 @@ build-pios12-64:
       - build
 
 publish-pios12-64:
-  stage: build
+  stage: publish
   needs:
     - build-pios12-64
   dependencies:
