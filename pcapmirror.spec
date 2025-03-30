@@ -28,7 +28,8 @@ pcapmirror is a command-line tool for capturing and mirroring network traffic us
 %changelog
 * Sat Mar 29 2025 Matthias Cramer <cramer@freesone.net> 0.5-1
 - new option -c to count matching packets (overrides verbose mode)
-- reworked packet decoder to also decode arp
+- reworked packet decoder to also decode arp, vlan and qinq packets
+- well known protocols numbers are now decoded
 - works now on MacOS and OpenBSD
 * Mon Mar 24 2025 Matthias Cramer <cramer@freesone.net> 0.4-1
 - IPv6 support for remote destination
