@@ -75,6 +75,43 @@ void list_interfaces() {
     pcap_freealldevs(alldevs);
 }
 
+// Function to lookup protocol name or return protocol number as a string
+const char *lookup_protocol_name(int protocol) {
+    static char buf[5]; // Buffer to hold protocol number as a string
+
+    switch (protocol) {
+        case 1:
+            return "ICMP";
+        case 2:
+            return "IGMP";
+        case 6:
+            return "TCP";
+        case 17:
+            return "UDP";
+        case 41:
+            return "IPv6";
+        case 47:
+            return "GRE";
+        case 50:
+            return "ESP";
+        case 51:
+            return "AH";
+        case 58:
+            return "ICMPv6";
+        case 89:
+            return "OSPF";
+        case 112:
+            return "VRRP";
+        case 124:
+            return "ISIS";
+        case 132:
+            return "SCTP";
+        default:
+            snprintf(buf, sizeof(buf), "%d", protocol); // Convert protocol number to string
+            return buf;
+    }
+}
+
 void print_usage(const char *program_name) {
     printf("Usage: %s [options]\n", program_name);
     printf("Options:\n");
@@ -302,30 +339,47 @@ int main(int argc, char *argv[]) {
 
             // Check EtherType
             uint16_t ether_type = ntohs(eth_header->ether_type);
+            
+            int vlan_offset = 0; // Offset for VLAN-tagged packets
 
+            // Check for VLAN tags (including Q-in-Q)
+            while (ether_type == 0x8100 || ether_type == 0x88A8) {
+                // VLAN tag is present
+                vlan_offset += 4; // Each VLAN tag adds 4 bytes
+                uint16_t vlan_tag = ntohs(*(uint16_t *)(packet + ETHERNET_HEADER_LENGTH + vlan_offset - 4));
+                uint16_t vlan_id = vlan_tag & 0x0FFF; // Extract VLAN ID (12 bits)
+                uint8_t vlan_pcp = (vlan_tag >> 13) & 0x07; // Extract Priority Code Point (3 bits)
+                uint8_t vlan_dei = (vlan_tag >> 12) & 0x01; // Extract Drop Eligible Indicator (1 bit)
+
+                printf("VLAN Tag: VLAN ID=%d, PCP=%d, DEI=%d\n", vlan_id, vlan_pcp, vlan_dei);
+
+                // Update EtherType to the next protocol
+                ether_type = ntohs(*(uint16_t *)(packet + ETHERNET_HEADER_LENGTH + vlan_offset - 2));
+            }
+        
             if (ether_type == ETHERTYPE_IP) {
                 // Handle IPv4 traffic
-                ip_header = (struct ip *)(packet + ETHERNET_HEADER_LENGTH);
+                ip_header = (struct ip *)(packet + ETHERNET_HEADER_LENGTH + vlan_offset);
                 ip_protocol = ip_header->ip_v & 0x0F; // Get IP version
         
                 if (ip_protocol == 4) {
                     inet_ntop(AF_INET, &(ip_header->ip_src.s_addr), source_ip_str, INET6_ADDRSTRLEN);
                     inet_ntop(AF_INET, &(ip_header->ip_dst.s_addr), dest_ip_str, INET6_ADDRSTRLEN);
         
-                    printf("IPv4 Packet: %s -> %s, IP Protocol: %d\n",
-                           source_ip_str, dest_ip_str, ip_header->ip_p);
+                    printf("IPv4 Packet: %s -> %s, IP Protocol: %s\n",
+                           source_ip_str, dest_ip_str, lookup_protocol_name(ip_header->ip_p));
                 }
             } else if (ether_type == ETHERTYPE_IPV6) {
                 // Handle IPv6 traffic
-                ip6_header = (struct ip6_hdr *)(packet + ETHERNET_HEADER_LENGTH);
+                ip6_header = (struct ip6_hdr *)(packet + ETHERNET_HEADER_LENGTH + vlan_offset);
                 inet_ntop(AF_INET6, &(ip6_header->ip6_src), source_ip_str, INET6_ADDRSTRLEN);
                 inet_ntop(AF_INET6, &(ip6_header->ip6_dst), dest_ip_str, INET6_ADDRSTRLEN);
         
-                printf("IPv6 Packet: %s -> %s, Next Header: %d\n",
-                       source_ip_str, dest_ip_str, ip6_header->ip6_nxt);
+                printf("IPv6 Packet: %s -> %s, Next Header: %s\n",
+                       source_ip_str, dest_ip_str, lookup_protocol_name(ip6_header->ip6_nxt));
             } else if (ether_type == ETHERTYPE_ARP) {
                 // Handle ARP traffic
-                struct arp_header *arp = (struct arp_header *)(packet + ETHERNET_HEADER_LENGTH);
+                struct arp_header *arp = (struct arp_header *)(packet + ETHERNET_HEADER_LENGTH + vlan_offset);
         
                 printf("ARP Packet: Operation: %s\n",
                        (ntohs(arp->oper) == 1) ? "Request" : "Reply");
