@@ -24,6 +24,15 @@ Specify the destination host (required).
 .B \-p \fIport\fR
 Specify the destination port (default: 37008).
 .TP
+.B \-e
+Use ERSPAN encapsulation.
+.TP
+.B \-s \fIsource_ip\fR
+Specify the source IP address (required for ERSPAN).
+.TP
+.B \-S \fIsession_id\fR
+Specify the session ID (default: 42, must be between 0 and 1023)
+.TP
 .B \-4
 Force IPv4 host lookup.
 .TP

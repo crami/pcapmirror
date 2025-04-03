@@ -16,6 +16,9 @@ pcapmirror [options]
 * -f <filter> Specify the capture filter (BPF syntax)
 * -r <host/ipv4/ipv6> Specify the destination host (required)
 * -p <port> Specify the destination port (default: 37008)
+* -e Use ERSPAN encapsulation (default: TZSP)
+* -s <source_ip> Specify the source IP address (required for ERSPAN)
+* -S <session_id> Specify the session ID (default: 42, must be between 0 and 1023)
 * -4 Force IPv4 host lookup
 * -6 Force IPv6 host lookup
 * -l List available network interfaces.

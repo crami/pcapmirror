@@ -126,6 +126,9 @@ void print_usage(const char *program_name) {
     printf("  -f <filter>          Specify the capture filter (BPF syntax)\n");
     printf("  -r <host/ipv4/ipv6>  Specify the destination host (required)\n");
     printf("  -p <port>            Specify the destination port (default: %d)\n", DEFAULT_DEST_PORT);
+    printf("  -e                   Use ERSPAN encapsulation (default: TZSP)\n");
+    printf("  -s <source_ip>       Specify the source IP address (required for ERSPAN)\n");
+    printf("  -S <session_id>      Specify the session ID (default: 42, must be between 0 and 1023)\n");
     printf("  -4                   Force IPv4 host lookup\n");
     printf("  -6                   Force IPv6 host lookup\n");
     printf("  -l                   List available network interfaces\n");
@@ -153,6 +156,8 @@ int main(int argc, char *argv[]) {
     unsigned long long int packet_count = 0;  // Counter for matching packets (64bit)
 
     int use_erspan = 0; // Flag for ERSPAN encapsulation
+    char *source_address = NULL; // Source IP address, default is NULL
+    uint32_t session_id = 42;      // Session ID (10 bits)
 
     // Socket variables
     int sockfd;
@@ -196,6 +201,16 @@ int main(int argc, char *argv[]) {
             verbose = 0;       // Disable verbose mode if -c is set
         } else if (strcmp(argv[i], "-e") == 0) {
             use_erspan = 1; // Enable ERSPAN encapsulation
+        } else if (strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
+            source_address = argv[i + 1]; // Set source IP from command line
+            i++; // Skip the source IP value
+        } else if (strcmp(argv[i], "-S") == 0 && i + 1 < argc) {
+            session_id = atoi(argv[i + 1]); // Set session ID from command line
+            if (session_id > 1023) { // Validate session ID (must fit in 10 bits)
+                fprintf(stderr, "Error: Session ID must be between 0 and 1023.\n");
+                return 1;
+            }
+            i++; // Skip the session ID value
         }
     }
 
@@ -448,8 +463,18 @@ int main(int argc, char *argv[]) {
             ip_header.ip_off = 0; // Fragment offset
             ip_header.ip_ttl = 64; // Time to live
             ip_header.ip_p = IPPROTO_GRE; // Protocol (GRE)
-            ip_header.ip_src.s_addr = inet_addr("192.168.1.1"); // Replace with your source IP
             ip_header.ip_dst.s_addr = ((struct sockaddr_in *)&dest_addr)->sin_addr.s_addr;
+            
+            if (source_address != NULL) {
+                if (inet_pton(AF_INET, source_address, &(ip_header.ip_src)) != 1) {
+                    fprintf(stderr, "Error: Invalid source IP address '%s'\n", source_address);
+                    return 1;
+                }
+            } else {
+                ip_header.ip_src.s_addr = inet_addr("192.168.1.1"); // Default source IP
+            }
+
+            ip_header.ip_src.s_addr = inet_addr("192.168.1.1"); // Replace with your source IP
         
             // Set GRE header fields
             gre.flags = htons(0x1000); // GRE flags (S bit set for Sequence Number Present)
@@ -461,7 +486,6 @@ int main(int argc, char *argv[]) {
             uint32_t cos = 5;              // Class of Service (3 bits)
             uint32_t en = 0;               // Trunk Encapsulation Type (2 bit)
             uint32_t t = 1;                // Truncated (1 bit)
-            uint32_t session_id = 42;      // Session ID (10 bits)
 
             // Combine fields into the 32-bit ver_vlan_cos_en_t_session field
             erspan.ver_vlan_cos_en_t_session = 
