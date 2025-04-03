@@ -206,6 +206,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // Check if the interface is specified
+    if (dev_name == NULL) {
+        fprintf(stderr, "Error: Interface must be specified\n");
+        return 1;
+    }
+
     // Resolve the destination address
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC; // Allow IPv4 or IPv6
