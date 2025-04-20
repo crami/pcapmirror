@@ -1,3 +1,11 @@
+pcapmirror (0.6-1) unstable; urgency=medium
+
+  * Erspan Encapsulation support
+  * added option -e to set the encapsulation type
+  * added option -S to set ERSPAN session id
+
+ -- Matthias Cramer <cramer@freestone.net>  Sun, 20 Apr 2025 16:50:00 +0200
+
 pcapmirror (0.5-1) unstable; urgency=medium
 
   * new option -c to count matching packets (overrides verbose mode)

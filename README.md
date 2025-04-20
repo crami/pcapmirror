@@ -2,7 +2,7 @@
 # pcapmirror
 ![pcapmirror logo](logo/pcapmirror_logo_small.png)
 
-pcapmirror is a command-line tool for capturing network traffic and mirroring it to a remote destination using [TZSP encapsulation](https://en.wikipedia.org/wiki/TZSP). It leverages the `libpcap` library for packet capture and provides options for filtering traffic based on BPF syntax. This tool is useful for network monitoring, intrusion detection, and remote packet analysis.
+pcapmirror is a command-line tool for capturing network traffic and mirroring it to a remote destination using [TZSP encapsulation](https://en.wikipedia.org/wiki/TZSP) or [ERSPAN](https://datatracker.ietf.org/doc/html/draft-foschiano-erspan-01). It leverages the `libpcap` library for packet capture and provides options for filtering traffic based on BPF syntax. This tool is useful for network monitoring, intrusion detection, and remote packet analysis.
 
 ## Usage
 
