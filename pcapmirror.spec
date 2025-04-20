@@ -10,7 +10,7 @@ BuildRequires:   make
 BuildRequires:   libpcap-devel
 
 %description
-pcapmirror is a command-line tool for capturing and mirroring network traffic using TZSP encapsulation. It leverages the `libpcap` library for packet capture and supports BPF syntax for filtering traffic.
+pcapmirror is a command-line tool for capturing and mirroring network traffic using TZSP or ERSPAN encapsulation. It leverages the `libpcap` library for packet capture and supports BPF syntax for filtering traffic.
 
 %build
 %make_build
@@ -26,7 +26,11 @@ pcapmirror is a command-line tool for capturing and mirroring network traffic us
 
 
 %changelog
-* Sat Mar 29 2025 Matthias Cramer <cramer@freesone.net> 0.5-1
+* Sun Apr 20 2025 Matthias Cramer <cramer@freestone.net> 0.6-1
+- Erspan Encapsulation support
+- added option -e to set the encapsulation type
+- added option -S to set ERSPAN session id
+* Sat Mar 29 2025 Matthias Cramer <cramer@freestone.net> 0.5-1
 - new option -c to count matching packets (overrides verbose mode)
 - reworked packet decoder to also decode arp, vlan and qinq packets
 - well known protocols numbers are now decoded

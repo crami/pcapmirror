@@ -38,6 +38,19 @@ struct tzsp_tagged {
     unsigned char type;         // Tag type
 };
 
+// GRE Header Structure
+struct gre_header {
+    uint16_t flags;      // GRE flags
+    uint16_t protocol;   // Protocol type (0x88BE for ERSPAN)
+};
+
+// ERSPAN Header Structure
+// ERSPAN Type II Header Structure
+struct erspan_header {
+    uint32_t ver_vlan_cos_en_t_session; // Ver (4 bits), VLAN (12 bits), COS (3 bits), En (1 bit), T (1 bit), Session ID (10 bits)
+    uint32_t reserved_index;            // Reserved (12 bits), Index (20 bits)
+};
+
 // Add this structure for ARP header parsing
 struct arp_header {
     uint16_t htype;    // Hardware type
@@ -50,12 +63,6 @@ struct arp_header {
     uint8_t tha[6];    // Target hardware address
     uint8_t tpa[4];    // Target protocol address
 };
-
-// Function to check if the system is little-endian
-int is_little_endian() {
-    volatile unsigned int i=0x01234567;
-    return (((unsigned char*)&i)[0] == 0x67);
-}
 
 void list_interfaces() {
     pcap_if_t *alldevs;
@@ -119,6 +126,9 @@ void print_usage(const char *program_name) {
     printf("  -f <filter>          Specify the capture filter (BPF syntax)\n");
     printf("  -r <host/ipv4/ipv6>  Specify the destination host (required)\n");
     printf("  -p <port>            Specify the destination port (default: %d)\n", DEFAULT_DEST_PORT);
+    printf("  -e                   Use ERSPAN encapsulation (default: TZSP)\n");
+    printf("  -s <source_ip>       Specify the source IP address (required for ERSPAN)\n");
+    printf("  -S <session_id>      Specify the session ID (default: 42, must be between 0 and 1023)\n");
     printf("  -4                   Force IPv4 host lookup\n");
     printf("  -6                   Force IPv6 host lookup\n");
     printf("  -l                   List available network interfaces\n");
@@ -144,6 +154,10 @@ int main(int argc, char *argv[]) {
     // Add a variable to track the count of matching packets
     int count_packets = 0; // Flag for counting packets
     unsigned long long int packet_count = 0;  // Counter for matching packets (64bit)
+
+    int use_erspan = 0; // Flag for ERSPAN encapsulation
+    char *source_address = NULL; // Source IP address, default is NULL
+    uint32_t session_id = 42;      // Session ID (10 bits)
 
     // Socket variables
     int sockfd;
@@ -185,6 +199,18 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "-c") == 0) {
             count_packets = 1; // Enable packet counting
             verbose = 0;       // Disable verbose mode if -c is set
+        } else if (strcmp(argv[i], "-e") == 0) {
+            use_erspan = 1; // Enable ERSPAN encapsulation
+        } else if (strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
+            source_address = argv[i + 1]; // Set source IP from command line
+            i++; // Skip the source IP value
+        } else if (strcmp(argv[i], "-S") == 0 && i + 1 < argc) {
+            session_id = atoi(argv[i + 1]); // Set session ID from command line
+            if (session_id > 1023) { // Validate session ID (must fit in 10 bits)
+                fprintf(stderr, "Error: Session ID must be between 0 and 1023.\n");
+                return 1;
+            }
+            i++; // Skip the session ID value
         }
     }
 
@@ -239,12 +265,31 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Create UDP socket
-    sockfd = socket(res->ai_family, SOCK_DGRAM, 0);
-    if (sockfd == -1) {
-        perror("socket");
-        freeaddrinfo(res);
-        return 1;
+    if (use_erspan) {
+        // Create a raw socket for ERSPAN
+        sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_GRE);
+        if (sockfd == -1) {
+            perror("socket");
+            freeaddrinfo(res);
+            return 1;
+        }
+    
+        // Set the IP_HDRINCL option to include the IP header in the packet
+        int optval = 1;
+        if (setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &optval, sizeof(optval)) == -1) {
+            perror("setsockopt");
+            close(sockfd);
+            freeaddrinfo(res);
+            return 1;
+        }
+    } else {
+        // Create a UDP socket for TZSP
+        sockfd = socket(res->ai_family, SOCK_DGRAM, 0);
+        if (sockfd == -1) {
+            perror("socket");
+            freeaddrinfo(res);
+            return 1;
+        }
     }
 
     memset(&dest_addr, 0, sizeof(dest_addr));
@@ -314,6 +359,7 @@ int main(int argc, char *argv[]) {
     struct ip6_hdr *ip6_header; // Declare ip6_header
     int ip_protocol = 0;
     struct timeval current_time, last_count;
+    static uint32_t sequence_number = 0; // Sequence number for ERSPAN packets
 
     gettimeofday(&last_count, NULL);
     printf("\n");
@@ -400,41 +446,140 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // Create TZSP Header
-        struct tzsp_header tzsp;
-        tzsp.version = 1;          // TZSP Version 1
-        tzsp.type = 1;          // Type 1 for packet
-        tzsp.encapsulated_protocol = htons(1); // Ethernet
+        // Encapsulation logic
+        if (use_erspan) {
+            // ERSPAN Encapsulation
+            struct ip ip_header;
+            struct gre_header gre;
+            struct erspan_header erspan;
+        
+            // Set IP header fields
+            memset(&ip_header, 0, sizeof(ip_header));
+            ip_header.ip_hl = 5; // Header length (5 * 4 = 20 bytes)
+            ip_header.ip_v = 4;  // IPv4
+            ip_header.ip_tos = 0; // Type of Service
+            ip_header.ip_len = htons(sizeof(ip_header) + sizeof(gre) + sizeof(sequence_number) + sizeof(erspan) + header.caplen);
+            ip_header.ip_id = htons(0); // Identification
+            ip_header.ip_off = 0; // Fragment offset
+            ip_header.ip_ttl = 64; // Time to live
+            ip_header.ip_p = IPPROTO_GRE; // Protocol (GRE)
+            ip_header.ip_dst.s_addr = ((struct sockaddr_in *)&dest_addr)->sin_addr.s_addr;
+            
+            if (source_address != NULL) {
+                if (inet_pton(AF_INET, source_address, &(ip_header.ip_src)) != 1) {
+                    fprintf(stderr, "Error: Invalid source IP address '%s'\n", source_address);
+                    return 1;
+                }
+            } else {
+                ip_header.ip_src.s_addr = inet_addr("192.168.1.1"); // Default source IP
+            }
 
-        // Create TZSP Tagged Field for End of Fields
-        struct tzsp_tagged end_tag;
-        end_tag.type = 1;             // End of Fields
+            ip_header.ip_src.s_addr = inet_addr("192.168.1.1"); // Replace with your source IP
+        
+            // Set GRE header fields
+            gre.flags = htons(0x1000); // GRE flags (S bit set for Sequence Number Present)
+            gre.protocol = htons(0x88BE); // ERSPAN protocol type
+        
+            // Set ERSPAN header fields
+            uint32_t version = 1;          // Version (4 bits)
+            uint32_t vlan = 100;           // VLAN ID (12 bits)
+            uint32_t cos = 5;              // Class of Service (3 bits)
+            uint32_t en = 0;               // Trunk Encapsulation Type (2 bit)
+            uint32_t t = 1;                // Truncated (1 bit)
 
-        // Calculate total length
-        unsigned short total_length = header.caplen + TZSP_ENCAP_LEN + TZSP_TAGGED_LEN;
-        tzsp.length = htons(total_length);
+            // Combine fields into the 32-bit ver_vlan_cos_en_t_session field
+            erspan.ver_vlan_cos_en_t_session = 
+                ((version & 0xF) << 28) |  // Version (4 bits, shifted to bits 28-31)
+                ((vlan & 0xFFF) << 16) |   // VLAN ID (12 bits, shifted to bits 16-27)
+                ((cos & 0x7) << 13) |      // Class of Service (3 bits, shifted to bits 13-15)
+                ((en & 0x3) << 11) |       // Trunk Encapsulation Type (2 bit, bit 12)
+                ((t & 0x1) << 10) |        // Truncated (1 bit, bit 11)
+                (session_id & 0x3FF);      // Session ID (10 bits, bits 0-9)
 
-        // Allocate memory for TZSP packet
-        unsigned char *tzsp_packet = (unsigned char *)malloc(total_length);
-        if (tzsp_packet == NULL) {
-            perror("malloc");
-            continue; // Skip this packet
+            // Convert to network byte order
+            erspan.ver_vlan_cos_en_t_session = htonl(erspan.ver_vlan_cos_en_t_session);
+
+            // Set the reserved and index fields
+            uint32_t reserved = 0;         // Reserved (12 bits)
+            uint32_t index = 12345;        // Index (20 bits)
+
+            // Combine fields into the 32-bit reserved_index field
+            erspan.reserved_index = 
+                ((reserved & 0xFFF) << 20) | // Reserved (12 bits, bits 20-31)
+                (index & 0xFFFFF);           // Index (20 bits, bits 0-19)
+
+            // Convert to network byte order
+            erspan.reserved_index = htonl(erspan.reserved_index);
+        
+            // Calculate total length
+            unsigned short total_length = sizeof(ip_header) + sizeof(gre) + sizeof(sequence_number) + sizeof(erspan) + header.caplen;
+        
+            // Allocate memory for ERSPAN packet
+            unsigned char *erspan_packet = (unsigned char *)malloc(total_length);
+            if (erspan_packet == NULL) {
+                perror("malloc");
+                continue; // Skip this packet
+            }
+        
+            // Copy IP header, GRE header, sequence number, ERSPAN header, and packet data into the new buffer
+            unsigned char *ptr = erspan_packet;
+            memcpy(ptr, &ip_header, sizeof(ip_header));
+            ptr += sizeof(ip_header);
+            memcpy(ptr, &gre, sizeof(gre));
+            ptr += sizeof(gre);
+            uint32_t seq_num_network_order = htonl(sequence_number++);
+            memcpy(ptr, &seq_num_network_order, sizeof(sequence_number));
+            ptr += sizeof(sequence_number);
+            memcpy(ptr, &erspan, sizeof(erspan));
+            ptr += sizeof(erspan);
+            memcpy(ptr, packet, header.caplen);
+        
+            // Send packet via raw socket
+            if (sendto(sockfd, erspan_packet, total_length, 0, (struct sockaddr *)&dest_addr, dest_addr_size) == -1) {
+                perror("sendto");
+            }
+        
+            free(erspan_packet); // Free allocated memory
+            printf("Sent ERSPAN packet with sequence number: %u\n", sequence_number - 1);
+        } else {
+            // TZSP Encapsulation
+
+            // Create TZSP Header
+            struct tzsp_header tzsp;
+            tzsp.version = 1;          // TZSP Version 1
+            tzsp.type = 1;          // Type 1 for packet
+            tzsp.encapsulated_protocol = htons(1); // Ethernet
+
+            // Create TZSP Tagged Field for End of Fields
+            struct tzsp_tagged end_tag;
+            end_tag.type = 1;             // End of Fields
+
+            // Calculate total length
+            unsigned short total_length = header.caplen + TZSP_ENCAP_LEN + TZSP_TAGGED_LEN;
+            tzsp.length = htons(total_length);
+
+            // Allocate memory for TZSP packet
+            unsigned char *tzsp_packet = (unsigned char *)malloc(total_length);
+            if (tzsp_packet == NULL) {
+                perror("malloc");
+                continue; // Skip this packet
+            }
+
+            // Copy TZSP header and tagged field and packet data into the new buffer
+            unsigned char *ptr = tzsp_packet;
+            memcpy(ptr, &tzsp, TZSP_ENCAP_LEN);
+            ptr += TZSP_ENCAP_LEN;
+            memcpy(ptr, &end_tag, TZSP_TAGGED_LEN);
+            ptr += TZSP_TAGGED_LEN;
+            memcpy(ptr, packet, header.caplen);
+
+            // Send packet via UDP with TZSP encapsulation
+            if (sendto(sockfd, tzsp_packet, total_length, 0, (struct sockaddr *)&dest_addr, dest_addr_size) == -1) {
+                perror("sendto");
+            }
+
+            free(tzsp_packet); // Free allocated memory
         }
-
-        // Copy TZSP header and tagged field and packet data into the new buffer
-        unsigned char *ptr = tzsp_packet;
-        memcpy(ptr, &tzsp, TZSP_ENCAP_LEN);
-        ptr += TZSP_ENCAP_LEN;
-        memcpy(ptr, &end_tag, TZSP_TAGGED_LEN);
-        ptr += TZSP_TAGGED_LEN;
-        memcpy(ptr, packet, header.caplen);
-
-        // Send packet via UDP with TZSP encapsulation
-        if (sendto(sockfd, tzsp_packet, total_length, 0, (struct sockaddr *)&dest_addr, dest_addr_size) == -1) {
-            perror("sendto");
-        }
-
-        free(tzsp_packet); // Free allocated memory
     }
 
     pcap_freecode(&fp);
