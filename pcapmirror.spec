@@ -1,5 +1,5 @@
 Name:     pcapmirror
-Version:  0.5
+Version:  0.6
 Release:  %(perl -e 'print time()')%{?dist}
 Summary:  A simple packet capture mirror
 License:  BSD 3-Clause License
