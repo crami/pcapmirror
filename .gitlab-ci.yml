@@ -47,7 +47,7 @@ build-trixie:
     - tags
   tags:
     - bookworm
-  image: debian-package-builder-trixie
+  image: debian-package-builder-trixie:v1
   script:
     - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
     - apt-get update && apt-get install -y libpcap-dev
