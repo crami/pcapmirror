@@ -40,6 +40,40 @@ publish-bookworm:
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_$VERSION-1_amd64.deb'
 
+build-trixie:
+  stage: build
+  needs: []
+  only:
+    - tags
+  tags:
+    - bookworm
+  image: debian-package-builder-trixie
+  script:
+    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
+    - apt-get update && apt-get install -y libpcap-dev
+    - dpkg-buildpackage -uc -us
+    - mkdir -p build
+    - mv ../pcapmirror*.* build/
+
+  artifacts:
+    paths:
+      - build
+
+publish-trixie:
+  stage: publish
+  needs:
+    - build-trixie
+  dependencies:
+    - build-trixie
+  only:
+    - tags
+  tags:
+    - bookworm
+  script:
+    - apt-get update && apt-get install -y curl
+    - ls -la build
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-1_amd64.deb'
+
 build-sid:
   stage: build
   needs: []
