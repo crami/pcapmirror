@@ -255,3 +255,73 @@ publish-pios12-64:
     - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_arm64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_$VERSION-pios12_arm64.deb'
+
+build-plucky:
+  stage: build
+  needs: []
+  only:
+    - tags
+  tags:
+    - docker-generic 
+  image: ubuntu-package-builder-plucky:v1
+  script:
+    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
+    - apt-get update && apt-get install -y libpcap-dev
+    - dpkg-buildpackage -uc -us
+    - mkdir -p build
+    - mv ../pcapmirror*.* build/
+
+  artifacts:
+    paths:
+      - build
+
+publish-trixie:
+  stage: publish
+  needs:
+    - build-plucky
+  dependencies:
+    - build-plucky
+  only:
+    - tags
+  tags:
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
+  script:
+    - apt-get update && apt-get install -y curl
+    - ls -la build
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-ubu25.04_amd64.deb'
+
+build-noble:
+  stage: build
+  needs: []
+  only:
+    - tags
+  tags:
+    - docker-generic 
+  image: ubuntu-package-builder-noble:v1
+  script:
+    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
+    - apt-get update && apt-get install -y libpcap-dev
+    - dpkg-buildpackage -uc -us
+    - mkdir -p build
+    - mv ../pcapmirror*.* build/
+
+  artifacts:
+    paths:
+      - build
+
+publish-trixie:
+  stage: publish
+  needs:
+    - build-noble
+  dependencies:
+    - build-noble
+  only:
+    - tags
+  tags:
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
+  script:
+    - apt-get update && apt-get install -y curl
+    - ls -la build
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-ubu24.04_amd64.deb'
