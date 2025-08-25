@@ -275,7 +275,7 @@ build-plucky:
     paths:
       - build
 
-publish-trixie:
+publish-plucky:
   stage: publish
   needs:
     - build-plucky
@@ -310,7 +310,7 @@ build-noble:
     paths:
       - build
 
-publish-trixie:
+publish-noble:
   stage: publish
   needs:
     - build-noble
