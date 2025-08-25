@@ -13,7 +13,7 @@ build-bookworm:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic 
   image: debian-package-builder-bookworm:v1
   script:
     - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
@@ -35,7 +35,8 @@ publish-bookworm:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
@@ -47,7 +48,7 @@ build-trixie:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic 
   image: debian-package-builder-trixie:v1
   script:
     - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
@@ -69,7 +70,8 @@ publish-trixie:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
@@ -81,7 +83,7 @@ build-sid:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic 
   image: debian-package-builder-sid:v1
   script:
     - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
@@ -103,7 +105,8 @@ publish-sid:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
@@ -115,7 +118,7 @@ build-rocky9:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic 
   image: rockylinux-package-builder-9:v1
   script:
     - dnf install -y libpcap-devel
@@ -140,7 +143,8 @@ publish-rocky9:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
@@ -152,7 +156,7 @@ build-rocky8:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic 
   image: rockylinux-package-builder-8:v1
   script:
     - dnf install -y libpcap-devel
@@ -177,7 +181,8 @@ publish-rocky8:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
@@ -210,7 +215,8 @@ publish-pios12:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
@@ -243,7 +249,8 @@ publish-pios12-64:
   only:
     - tags
   tags:
-    - bookworm
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
   script:
     - apt-get update && apt-get install -y curl
     - ls -la build
