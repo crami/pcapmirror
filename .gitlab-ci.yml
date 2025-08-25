@@ -327,3 +327,38 @@ publish-noble:
     - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-ubu24.04_amd64.deb'
+
+build-linuxstatic:
+  stage: build
+  needs: []
+  only:
+    - tags
+  tags:
+    - docker-generic 
+  image: debian-package-builder-bookworm:v1
+  script:
+    - apt-get update && apt-get install -y libpcap-dev
+    - make static
+    - mkdir -p build
+    - tar -czf build/pcapmirror_amd64.tgz pcapmirror pcapmirror.8.gz README.md
+
+  artifacts:
+    paths:
+      - build
+
+publish-linuxstatic:
+  stage: publish
+  needs:
+    - build-bookworm
+  dependencies:
+    - build-bookworm
+  only:
+    - tags
+  tags:
+    - docker-generic
+  image: debian-package-builder-bookworm:v1
+  script:
+    - apt-get update && apt-get install -y curl
+    - ls -la build
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_amd64.tgz ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/linux_static/pcapmirror_$VERSION_amd64.tgz'
+    

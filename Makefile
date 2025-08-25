@@ -24,6 +24,9 @@ PREFIX = /usr
 # Default rule
 all: $(TARGET) man
 
+static: $(OBJS)
+		$(CC) $(CFLAGS) -static $(OBJS) -o $(TARGET) $(LIBS) -ldbus-1 -lsystemd -lcap
+
 # Create executable
 $(TARGET): $(OBJS)
 		$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) $(LIBS)
