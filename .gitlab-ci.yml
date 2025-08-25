@@ -337,7 +337,7 @@ build-linuxstatic:
     - docker-generic 
   image: debian-package-builder-bookworm:v1
   script:
-    - apt-get update && apt-get install -y libpcap-dev
+    - apt-get update && apt-get install -y libpcap-dev libsystemd-dev libpcap0.8-dev
     - make static
     - mkdir -p build
     - tar -czf build/pcapmirror_amd64.tgz pcapmirror pcapmirror.8.gz README.md
@@ -361,4 +361,4 @@ publish-linuxstatic:
     - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_amd64.tgz ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/linux_static/pcapmirror_$VERSION_amd64.tgz'
-    
+
