@@ -194,7 +194,8 @@ build-pios12:
   only:
     - tags
   tags:
-    - pios12
+    - docker-generic
+  image: pios-package-builder-bookworm:v1
   script:
     - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
     - apt-get update && apt-get install -y libpcap-dev
@@ -228,7 +229,8 @@ build-pios12-64:
   only:
     - tags
   tags:
-    - pios12-64
+    - docker-generic
+  image: pios-package-builder-bookworm:64-v1
   script:
     - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
     - apt-get update && apt-get install -y libpcap-dev
