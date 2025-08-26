@@ -40,7 +40,7 @@ man:
 
 # Clean up object files and executable
 clean:
-		rm -f -f $(OBJS) $(TARGET)
+		rm -f -f $(OBJS) $(TARGET) pcapmirror.8.gz
 
 # Install the executable
 install: $(TARGET)
