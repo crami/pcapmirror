@@ -35,9 +35,8 @@ publish-bookworm:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_$VERSION-deb12_amd64.deb'
 
@@ -70,9 +69,8 @@ publish-trixie:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-deb13_amd64.deb'
 
@@ -105,11 +103,47 @@ publish-sid:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/sid/pcapmirror_$VERSION-sid_amd64.deb'
+
+build-rocky10:
+  stage: build
+  needs: []
+  only:
+    - tags
+  tags:
+    - docker-generic 
+  image: rockylinux-package-builder-10:v1
+  script:
+    - dnf install -y libpcap-devel
+    - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-v${VERSION}.tar.gz --exclude=debian --exclude=.git .
+    - cp -r * /root/rpmbuild/BUILD
+    - rpmbuild -ba pcapmirror.spec
+    - mkdir -p build
+    - mv /root/rpmbuild/RPMS/x86_64/pcapmirror*.* build/
+    - mv /root/rpmbuild/SRPMS/pcapmirror*.* build/
+
+  artifacts:
+    paths:
+      - build
+
+publish-rocky10:
+  stage: publish
+  needs:
+    - build-rocky10
+  dependencies:
+    - build-rocky10
+  only:
+    - tags
+  tags:
+    - docker-generic
+  image: debian-package-builder-trixie:v1
+  script:
+    - ls -la build
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-$VERSION-*.el10.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux10/pcapmirror-$VERSION-1.el10.x86_64.rpm'
 
 build-rocky9:
   stage: build
@@ -143,11 +177,10 @@ publish-rocky9:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-$VERSION-*.el9.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux9/pcapmirror-$VERSION-1.el8.x86_64.rpm'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-$VERSION-*.el9.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux9/pcapmirror-$VERSION-1.el9.x86_64.rpm'
 
 build-rocky8:
   stage: build
@@ -181,9 +214,8 @@ publish-rocky8:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-$VERSION-*.el8.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux8/pcapmirror-$VERSION-1.el8.x86_64.rpm'
 
@@ -216,9 +248,8 @@ publish-pios12:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_armhf.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_$VERSION-piso12_armhf.deb'
 
@@ -251,9 +282,8 @@ publish-pios12-64:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_arm64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_$VERSION-pios12_arm64.deb'
 
@@ -286,9 +316,8 @@ publish-plucky:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-ubu25.04_amd64.deb'
 
@@ -321,42 +350,8 @@ publish-noble:
     - tags
   tags:
     - docker-generic
-  image: debian-package-builder-bookworm:v1
+  image: debian-package-builder-trixie:v1
   script:
-    - apt-get update && apt-get install -y curl
     - ls -la build
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-ubu24.04_amd64.deb'
-
-# build-linuxstatic:
-#   stage: build
-#   needs: []
-#   only:
-#     - tags
-#   tags:
-#     - docker-generic 
-#   image: debian-package-builder-bookworm:v1
-#   script:
-#     - apt-get update && apt-get install -y libpcap-dev libsystemd-dev libpcap0.8-dev
-#     - make static
-#     - mkdir -p build
-#     - tar -czf build/pcapmirror_amd64.tgz pcapmirror pcapmirror.8.gz README.md
-#   artifacts:
-#     paths:
-#       - build
-
-# publish-linuxstatic:
-#   stage: publish
-#   needs:
-#     - build-bookworm
-#   dependencies:
-#     - build-bookworm
-#   only:
-#     - tags
-#   tags:
-#     - docker-generic
-#   image: debian-package-builder-bookworm:v1
-#   script:
-#     - apt-get update && apt-get install -y curl
-#     - ls -la build
-#     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_amd64.tgz ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/linux_static/pcapmirror_$VERSION_amd64.tgz'
 
