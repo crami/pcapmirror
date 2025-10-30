@@ -54,10 +54,10 @@ On the original download location you will also find several prebuilt packages.
 ### Supported Operating Systems
 Source is tested to build and function on the following operating systems
 
-* Debian Linux 12 + unstable (sid)
-* Rocky Linux 8 + 9
+* Debian Linux 12, 13 + unstable (sid)
+* Rocky Linux 8, 9, 10
 * PiOS 12 (bookworm)
-* OpenBSD 7.6
+* OpenBSD 7.6, 7.7
 * MacOS 15
 
 Compile the program:

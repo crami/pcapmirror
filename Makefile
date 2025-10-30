@@ -1,7 +1,7 @@
 # Makefile for pcapmirror
 
 # Compiler
-CC = gcc
+CC = cc
 
 # Compiler flags
 CFLAGS = -Wall -g
@@ -45,7 +45,7 @@ clean:
 # Install the executable
 install: $(TARGET)
 		mkdir -p $(DESTDIR)$(PREFIX)/bin
-		install -D $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
+		install -s -D $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 		install -D $(TARGET).8 $(DESTDIR)$(PREFIX)/share/man/man8/$(TARGET).8
 		
 
