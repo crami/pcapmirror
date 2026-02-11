@@ -19,9 +19,10 @@ OBJS = $(SRCS:.c=.o)
 TARGET = pcapmirror
 
 # Installation directory
+
 PREFIX = /usr
-ifdef prefix
-PREFIX = $(prefix)
+ifdef HOMEBREW_PREFIX
+PREFIX = $(HOMEBREW_PREFIX)
 endif
 
 # Default rule
