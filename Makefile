@@ -20,6 +20,9 @@ TARGET = pcapmirror
 
 # Installation directory
 PREFIX = /usr
+ifdef prefix
+PREFIX = $(prefix)
+endif
 
 # Default rule
 all: $(TARGET) man
