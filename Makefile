@@ -19,10 +19,14 @@ OBJS = $(SRCS:.c=.o)
 TARGET = pcapmirror
 
 # Installation directory
-
 PREFIX = /usr
-ifdef HOMEBREW_PREFIX
-PREFIX = $(HOMEBREW_PREFIX)
+
+ifndef BINDIR
+BINDIR = $(DESTDIR)$(PREFIX)/bin
+endif
+
+ifndef MANDIR
+MANDIR = $(DESTDIR)$(PREFIX)/share/man
 endif
 
 # Default rule
@@ -49,8 +53,8 @@ clean:
 # Install the executable
 install: $(TARGET)
 		mkdir -p $(DESTDIR)$(PREFIX)/bin
-		install -s -D $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
-		install -D $(TARGET).8 $(DESTDIR)$(PREFIX)/share/man/man8/$(TARGET).8
+		install -s -D $(TARGET) $(BINDIR)/$(TARGET)
+		install -D $(TARGET).8 $(MANDIR)/man8/$(TARGET).8
 		
 
 # Uninstall the executable
