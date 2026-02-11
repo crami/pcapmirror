@@ -53,8 +53,8 @@ clean:
 # Install the executable
 install: $(TARGET)
 		mkdir -p $(DESTDIR)$(PREFIX)/bin
-		install -s -D $(TARGET) $(BINDIR)/$(TARGET)
-		install -D $(TARGET).8 $(MANDIR)/man8/$(TARGET).8
+		install -s $(TARGET) $(BINDIR)/$(TARGET)
+		install $(TARGET).8 $(MANDIR)/man8/$(TARGET).8
 		
 
 # Uninstall the executable
