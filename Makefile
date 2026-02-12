@@ -52,7 +52,8 @@ clean:
 
 # Install the executable
 install: $(TARGET)
-		mkdir -p $(DESTDIR)$(PREFIX)/bin
+		mkdir -p $(BINDIR)
+		mkdir -p $(MANDIR)/man8
 		install -s $(TARGET) $(BINDIR)/$(TARGET)
 		install $(TARGET).8 $(MANDIR)/man8/$(TARGET).8
 		
