@@ -31,7 +31,7 @@ pcapmirror [options]
 To capture traffic on the eth0 interface, filter for TCP port 80, and send it to the destination, use the following command:
 
 ```bash
-sudo pcapmirror -i eth0 -f "tcp port 80" -r 192.168.1.100 -p 47008 -v
+sudo pcapmirror -i eth0 -f "tcp port 80" -r 192.168.1.100 -p 37008 -v
 ```
 *Note*: Running pcapmirror typically requires root privileges due to the use of libpcap for capturing network traffic.
 
@@ -48,6 +48,12 @@ To avoid capturing traffic from your own monitoring machine, configure Wireshark
 ## Packages
 
 On the original download location you will also find several prebuilt packages.
+
+# Install via Homebrew (macos, linux)
+
+```bash
+brew install pcapmirror
+```
 
 ## Compile and Install
 
