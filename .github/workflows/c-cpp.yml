@@ -13,5 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: dependencies
+      run: apt-get install libpcap-dev
     - name: make
       run: make
