@@ -77,7 +77,8 @@ deb:
     - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian --exclude=.git .
     - sed -i "1s/(\([^)]*\))/(\1+$SUFFIX)/" debian/changelog
     - dpkg-parsechangelog -S Version
-    - dpkg-buildpackage -uc -us
+    # -i -I: leave .git (not in the orig tarball) out of the source package
+    - dpkg-buildpackage -uc -us -i -I
     - mkdir -p dist/$DIST
     - cp ../pcapmirror_$DEBVERSION+${SUFFIX}_$ARCH.deb dist/$DIST/pcapmirror_$VERSION-${SUFFIX}_$ARCH.deb
   artifacts:
