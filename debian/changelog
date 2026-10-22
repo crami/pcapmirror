@@ -1,3 +1,12 @@
+pcapmirror (0.7-1) unstable; urgency=medium
+
+  * Makefile: install prefix is Homebrew aware, BINDIR and MANDIR can be set
+  * strip binary on install, build with cc so BSD needs no changes
+  * fix man page installation
+  * packages for Debian testing and unstable, published to the apt repository
+
+ -- Matthias Cramer <cramer@freestone.net>  Thu, 22 Oct 2026 02:34:28 +0200
+
 pcapmirror (0.6-1) unstable; urgency=medium
 
   * Erspan Encapsulation support

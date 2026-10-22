@@ -60,7 +60,7 @@ brew install pcapmirror
 ### Supported Operating Systems
 Source is tested to build and function on the following operating systems
 
-* Debian Linux 12, 13 + unstable (sid)
+* Debian Linux 12, 13, testing + unstable
 * Rocky Linux 8, 9, 10
 * PiOS 12 (bookworm)
 * OpenBSD 7.6, 7.7

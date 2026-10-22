@@ -1,5 +1,5 @@
 Name:     pcapmirror
-Version:  0.6
+Version:  0.7
 Release:  %(perl -e 'print time()')%{?dist}
 Summary:  A simple packet capture mirror
 License:  BSD 3-Clause License
@@ -26,6 +26,10 @@ pcapmirror is a command-line tool for capturing and mirroring network traffic us
 
 
 %changelog
+* Thu Oct 22 2026 Matthias Cramer <cramer@freestone.net> 0.7-1
+- Makefile: install prefix is Homebrew aware, BINDIR and MANDIR can be set
+- strip binary on install, build with cc so BSD needs no changes
+- fix man page installation
 * Sun Apr 20 2025 Matthias Cramer <cramer@freestone.net> 0.6-1
 - Erspan Encapsulation support
 - added option -e to set the encapsulation type

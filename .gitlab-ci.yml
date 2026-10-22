@@ -1,357 +1,202 @@
+# The package version comes from debian/changelog. Packages are built and
+# published only for tags, which must match it (v0.6 or 0.6), as must the
+# Version in pcapmirror.spec. Each build gets its own package version
+# (0.6-1+deb13, +testing, +unstable, ...), so that the builds for the
+# different suites can live in one apt repository.
+#
+# The packages are collected in dist/<dist>/ and uploaded to the generic
+# package registry (pcapmirror/<dist>/). The Debian bookworm, trixie, testing
+# and unstable packages also go to the apt repository.
+#
+# The release job creates a GitLab release for the tag that links the
+# packages in the generic package registry.
+#
+# publish-deb needs these CI/CD variables: APT_HOST (the repository server),
+# APT_KNOWN_HOSTS (its host key line) and APT_DEPLOY_KEY (private key of the
+# "repo" user, whose authorized_keys runs reprepro for the given suite).
+
 stages:
+  - version
   - build
   - publish
-  
+  - release
+
+default:
+  tags:
+    - docker-generic
+
 variables:
   DEBIAN_FRONTEND: noninteractive
-  VERSION: 0.6
 
-build-bookworm:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic 
-  image: debian-package-builder-bookworm:v1
+# Passes VERSION (upstream, 0.6) and DEBVERSION (0.6-1) to the other jobs.
+version:
+  stage: version
+  image: debian:trixie-slim
+  rules:
+    - if: $CI_COMMIT_TAG
   script:
-    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
-    - apt-get update && apt-get install -y libpcap-dev
-    - dpkg-buildpackage -uc -us
-    - mkdir -p build
-    - mv ../pcapmirror*.* build/
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends dpkg-dev
+    - DEBVERSION=$(dpkg-parsechangelog -S Version)
+    - VERSION=$(echo "$DEBVERSION" | sed -e 's/^[0-9]*://' -e 's/-[^-]*$//')
+    - |
+      if [ "${CI_COMMIT_TAG#v}" != "$VERSION" ]; then
+        echo "Tag $CI_COMMIT_TAG does not match debian/changelog version $DEBVERSION" >&2
+        exit 1
+      fi
+      SPECVERSION=$(sed -n 's/^Version:[[:space:]]*//p' pcapmirror.spec)
+      if [ "$SPECVERSION" != "$VERSION" ]; then
+        echo "pcapmirror.spec version $SPECVERSION does not match $VERSION" >&2
+        exit 1
+      fi
+    - echo "VERSION=$VERSION" > build.env
+    - echo "DEBVERSION=$DEBVERSION" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
 
+deb:
+  stage: build
+  image: $IMAGE
+  parallel:
+    matrix:
+      - { DIST: bookworm, IMAGE: "debian:bookworm", ARCH: amd64, SUFFIX: deb12 }
+      - { DIST: trixie, IMAGE: "debian:trixie", ARCH: amd64, SUFFIX: deb13 }
+      - { DIST: testing, IMAGE: "debian:testing", ARCH: amd64, SUFFIX: testing }
+      - { DIST: unstable, IMAGE: "debian:unstable", ARCH: amd64, SUFFIX: unstable }
+      - { DIST: bookworm, IMAGE: "pios-package-builder-bookworm:v1", ARCH: armhf, SUFFIX: pios12 }
+      - { DIST: bookworm, IMAGE: "pios-package-builder-bookworm:64-v1", ARCH: arm64, SUFFIX: pios12 }
+      - { DIST: plucky, IMAGE: "ubuntu-package-builder-plucky:v1", ARCH: amd64, SUFFIX: ubu25.04 }
+      - { DIST: noble, IMAGE: "ubuntu-package-builder-noble:v1", ARCH: amd64, SUFFIX: ubu24.04 }
+  rules:
+    - if: $CI_COMMIT_TAG
+  needs:
+    - version
+  script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends build-essential debhelper libpcap-dev
+    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian --exclude=.git .
+    - sed -i "1s/(\([^)]*\))/(\1+$SUFFIX)/" debian/changelog
+    - dpkg-parsechangelog -S Version
+    - dpkg-buildpackage -uc -us
+    - mkdir -p dist/$DIST
+    - cp ../pcapmirror_$DEBVERSION+${SUFFIX}_$ARCH.deb dist/$DIST/pcapmirror_$VERSION-${SUFFIX}_$ARCH.deb
   artifacts:
     paths:
-      - build
+      - dist/
 
-publish-bookworm:
-  stage: publish
-  needs:
-    - build-bookworm
-  dependencies:
-    - build-bookworm
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
-  script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_$VERSION-deb12_amd64.deb'
-
-build-trixie:
+rpm:
   stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic 
-  image: debian-package-builder-trixie:v1
-  script:
-    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
-    - apt-get update && apt-get install -y libpcap-dev
-    - dpkg-buildpackage -uc -us
-    - mkdir -p build
-    - mv ../pcapmirror*.* build/
-
-  artifacts:
-    paths:
-      - build
-
-publish-trixie:
-  stage: publish
+  image: rockylinux-package-builder-$EL:v1
+  parallel:
+    matrix:
+      - EL: ["8", "9", "10"]
+  rules:
+    - if: $CI_COMMIT_TAG
   needs:
-    - build-trixie
-  dependencies:
-    - build-trixie
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
-  script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-deb13_amd64.deb'
-
-build-sid:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic 
-  image: debian-package-builder-sid:v1
-  script:
-    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
-    - apt-get update && apt-get install -y libpcap-dev
-    - dpkg-buildpackage -uc -us
-    - mkdir -p build
-    - mv ../pcapmirror*.* build/
-
-  artifacts:
-    paths:
-      - build
-
-publish-sid:
-  stage: publish
-  needs:
-    - build-sid
-  dependencies:
-    - build-sid
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
-  script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/sid/pcapmirror_$VERSION-sid_amd64.deb'
-
-build-rocky10:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic 
-  image: rockylinux-package-builder-10:v1
+    - version
   script:
     - dnf install -y libpcap-devel
     - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
     - tar -czf /root/rpmbuild/SOURCES/pcapmirror-v${VERSION}.tar.gz --exclude=debian --exclude=.git .
     - cp -r * /root/rpmbuild/BUILD
     - rpmbuild -ba pcapmirror.spec
-    - mkdir -p build
-    - mv /root/rpmbuild/RPMS/x86_64/pcapmirror*.* build/
-    - mv /root/rpmbuild/SRPMS/pcapmirror*.* build/
-
+    - mkdir -p dist/rockylinux$EL
+    - cp /root/rpmbuild/RPMS/x86_64/pcapmirror-$VERSION-*.el$EL.x86_64.rpm dist/rockylinux$EL/pcapmirror-$VERSION-1.el$EL.x86_64.rpm
   artifacts:
     paths:
-      - build
+      - dist/
 
-publish-rocky10:
+publish-generic:
   stage: publish
+  image: debian:trixie-slim
+  rules:
+    - if: $CI_COMMIT_TAG
   needs:
-    - build-rocky10
-  dependencies:
-    - build-rocky10
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
+    - job: deb
+      artifacts: true
+    - job: rpm
+      artifacts: true
   script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-$VERSION-*.el10.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux10/pcapmirror-$VERSION-1.el10.x86_64.rpm'
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates
+    - ls -R dist
+    - |
+      for f in dist/*/*; do
+        dist=$(basename "$(dirname "$f")")
+        echo "$f -> $dist"
+        curl --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$f" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/$dist/$(basename "$f")"
+      done
 
-build-rocky9:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic 
-  image: rockylinux-package-builder-9:v1
-  script:
-    - dnf install -y libpcap-devel
-    - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-v${VERSION}.tar.gz --exclude=debian --exclude=.git .
-    - cp -r * /root/rpmbuild/BUILD
-    - rpmbuild -ba pcapmirror.spec
-    - mkdir -p build
-    - mv /root/rpmbuild/RPMS/x86_64/pcapmirror*.* build/
-    - mv /root/rpmbuild/SRPMS/pcapmirror*.* build/
-
-  artifacts:
-    paths:
-      - build
-
-publish-rocky9:
+publish-deb:
   stage: publish
+  image: debian:trixie-slim
+  rules:
+    - if: $CI_COMMIT_TAG
   needs:
-    - build-rocky9
-  dependencies:
-    - build-rocky9
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
+    - job: deb
+      artifacts: true
   script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-$VERSION-*.el9.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux9/pcapmirror-$VERSION-1.el9.x86_64.rpm'
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends openssh-client
+    - mkdir -p ~/.ssh && echo "$APT_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - eval "$(ssh-agent -s)" && echo "$APT_DEPLOY_KEY" | tr -d '\r' | ssh-add -
+    # The packages are in dist/<suite>/; each goes to the distribution of
+    # the same name in the repository. Only the amd64 ones: dist/bookworm/
+    # also has the PiOS packages.
+    - |
+      for suite in bookworm trixie testing unstable; do
+        for f in dist/$suite/pcapmirror_*_amd64.deb; do
+          [ -f "$f" ] || { echo "no package for $suite" >&2; exit 1; }
+          echo "$f -> $suite"
+          ssh "repo@$APT_HOST" "$suite" < "$f"
+        done
+      done
 
-build-rocky8:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic 
-  image: rockylinux-package-builder-8:v1
-  script:
-    - dnf install -y libpcap-devel
-    - mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-    - tar -czf /root/rpmbuild/SOURCES/pcapmirror-v${VERSION}.tar.gz --exclude=debian --exclude=.git .
-    - cp -r * /root/rpmbuild/BUILD
-    - rpmbuild -ba pcapmirror.spec
-    - mkdir -p build
-    - mv /root/rpmbuild/RPMS/x86_64/pcapmirror*.* build/
-    - mv /root/rpmbuild/SRPMS/pcapmirror*.* build/
-
-  artifacts:
-    paths:
-      - build
-
-publish-rocky8:
-  stage: publish
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG
   needs:
-    - build-rocky8
-  dependencies:
-    - build-rocky8
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
+    - version
+    - publish-generic
   script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror-$VERSION-*.el8.x86_64.rpm ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/rockylinux8/pcapmirror-$VERSION-1.el8.x86_64.rpm'
-
-build-pios12:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: pios-package-builder-bookworm:v1
-  script:
-    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
-    - apt-get update && apt-get install -y libpcap-dev
-    - dpkg-buildpackage -uc -us
-    - mkdir -p build
-    - mv ../pcapmirror*.* build/
-
-  artifacts:
-    paths:
-      - build
-
-publish-pios12:
-  stage: publish
-  needs:
-    - build-pios12
-  dependencies:
-    - build-pios12
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
-  script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_armhf.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_$VERSION-piso12_armhf.deb'
-
-build-pios12-64:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: pios-package-builder-bookworm:64-v1
-  script:
-    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
-    - apt-get update && apt-get install -y libpcap-dev
-    - dpkg-buildpackage -uc -us
-    - mkdir -p build
-    - mv ../pcapmirror*.* build/
-
-  artifacts:
-    paths:
-      - build
-
-publish-pios12-64:
-  stage: publish
-  needs:
-    - build-pios12-64
-  dependencies:
-    - build-pios12-64
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
-  script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_arm64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/bookworm/pcapmirror_$VERSION-pios12_arm64.deb'
-
-build-plucky:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic 
-  image: ubuntu-package-builder-plucky:v1
-  script:
-    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
-    - apt-get update && apt-get install -y libpcap-dev
-    - dpkg-buildpackage -uc -us
-    - mkdir -p build
-    - mv ../pcapmirror*.* build/
-
-  artifacts:
-    paths:
-      - build
-
-publish-plucky:
-  stage: publish
-  needs:
-    - build-plucky
-  dependencies:
-    - build-plucky
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
-  script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-ubu25.04_amd64.deb'
-
-build-noble:
-  stage: build
-  needs: []
-  only:
-    - tags
-  tags:
-    - docker-generic 
-  image: ubuntu-package-builder-noble:v1
-  script:
-    - tar -czf ../pcapmirror_$VERSION.orig.tar.gz --exclude=debian .
-    - apt-get update && apt-get install -y libpcap-dev
-    - dpkg-buildpackage -uc -us
-    - mkdir -p build
-    - mv ../pcapmirror*.* build/
-
-  artifacts:
-    paths:
-      - build
-
-publish-noble:
-  stage: publish
-  needs:
-    - build-noble
-  dependencies:
-    - build-noble
-  only:
-    - tags
-  tags:
-    - docker-generic
-  image: debian-package-builder-trixie:v1
-  script:
-    - ls -la build
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file build/pcapmirror_$VERSION-1_amd64.deb ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/pcapmirror/trixie/pcapmirror_$VERSION-ubu24.04_amd64.deb'
-
+    - echo "Release $CI_COMMIT_TAG"
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: pcapmirror $VERSION
+    description: "pcapmirror $VERSION for Debian, PiOS, Ubuntu and Rocky Linux."
+    assets:
+      links:
+        - name: pcapmirror_${VERSION}-deb12_amd64.deb (Debian 12 (bookworm))
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-deb12_amd64.deb
+          link_type: package
+        - name: pcapmirror_${VERSION}-deb13_amd64.deb (Debian 13 (trixie))
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/trixie/pcapmirror_${VERSION}-deb13_amd64.deb
+          link_type: package
+        - name: pcapmirror_${VERSION}-testing_amd64.deb (Debian testing)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/testing/pcapmirror_${VERSION}-testing_amd64.deb
+          link_type: package
+        - name: pcapmirror_${VERSION}-unstable_amd64.deb (Debian unstable)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/unstable/pcapmirror_${VERSION}-unstable_amd64.deb
+          link_type: package
+        - name: pcapmirror_${VERSION}-pios12_armhf.deb (PiOS 12 armhf)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-pios12_armhf.deb
+          link_type: package
+        - name: pcapmirror_${VERSION}-pios12_arm64.deb (PiOS 12 arm64)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-pios12_arm64.deb
+          link_type: package
+        - name: pcapmirror_${VERSION}-ubu24.04_amd64.deb (Ubuntu 24.04 (noble))
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/noble/pcapmirror_${VERSION}-ubu24.04_amd64.deb
+          link_type: package
+        - name: pcapmirror_${VERSION}-ubu25.04_amd64.deb (Ubuntu 25.04 (plucky))
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/plucky/pcapmirror_${VERSION}-ubu25.04_amd64.deb
+          link_type: package
+        - name: pcapmirror-${VERSION}-1.el8.x86_64.rpm (Rocky Linux 8)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/rockylinux8/pcapmirror-${VERSION}-1.el8.x86_64.rpm
+          link_type: package
+        - name: pcapmirror-${VERSION}-1.el9.x86_64.rpm (Rocky Linux 9)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/rockylinux9/pcapmirror-${VERSION}-1.el9.x86_64.rpm
+          link_type: package
+        - name: pcapmirror-${VERSION}-1.el10.x86_64.rpm (Rocky Linux 10)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/rockylinux10/pcapmirror-${VERSION}-1.el10.x86_64.rpm
+          link_type: package
