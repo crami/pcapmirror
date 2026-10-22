@@ -6,7 +6,8 @@
 #
 # The packages are collected in dist/<dist>/ and uploaded to the generic
 # package registry (pcapmirror/<dist>/). The Debian bookworm, trixie, testing
-# and unstable packages also go to the apt repository.
+# and unstable packages (amd64, and arm64 where there is one: the PiOS
+# bookworm build) also go to the apt repository.
 #
 # The release job creates a GitLab release for the tag that links the
 # packages in the generic package registry. Each link has a filepath without
@@ -157,12 +158,14 @@ publish-deb:
       eval "$(ssh-agent -s)"
       printf '%s\n' "$key" | tr -d '\r' | ssh-add -
     # The packages are in dist/<suite>/; each goes to the distribution of
-    # the same name in the repository. Only the amd64 ones: dist/bookworm/
-    # also has the PiOS packages.
+    # the same name in the repository. The amd64 and arm64 ones: dist/bookworm/
+    # also has the PiOS packages, of which the arm64 one goes to bookworm too.
     - |
       for suite in bookworm trixie testing unstable; do
-        for f in dist/$suite/pcapmirror_*_amd64.deb; do
-          [ -f "$f" ] || { echo "no package for $suite" >&2; exit 1; }
+        set -- dist/$suite/pcapmirror_*_amd64.deb
+        [ -f "$1" ] || { echo "no package for $suite" >&2; exit 1; }
+        for f in dist/$suite/pcapmirror_*_amd64.deb dist/$suite/pcapmirror_*_arm64.deb; do
+          [ -f "$f" ] || continue
           echo "$f -> $suite"
           ssh "repo@$APT_HOST" "$suite" < "$f"
         done
