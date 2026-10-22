@@ -65,8 +65,8 @@ deb:
       - { DIST: trixie, IMAGE: "debian:trixie", ARCH: amd64, SUFFIX: deb13 }
       - { DIST: testing, IMAGE: "debian:testing", ARCH: amd64, SUFFIX: testing }
       - { DIST: unstable, IMAGE: "debian:unstable", ARCH: amd64, SUFFIX: unstable }
-      # - { DIST: bookworm, IMAGE: "pios-package-builder-bookworm:v1", ARCH: armhf, SUFFIX: pios12 }
-      # - { DIST: bookworm, IMAGE: "pios-package-builder-bookworm:64-v1", ARCH: arm64, SUFFIX: pios12 }
+      - { DIST: bookworm, IMAGE: "pios-package-builder-bookworm:v1", ARCH: armhf, SUFFIX: pios12 }
+      - { DIST: bookworm, IMAGE: "pios-package-builder-bookworm:64-v1", ARCH: arm64, SUFFIX: pios12 }
       - { DIST: plucky, IMAGE: "ubuntu-package-builder-plucky:v1", ARCH: amd64, SUFFIX: ubu25.04 }
       - { DIST: noble, IMAGE: "ubuntu-package-builder-noble:v1", ARCH: amd64, SUFFIX: ubu24.04 }
   rules:
@@ -200,14 +200,14 @@ release:
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/unstable/pcapmirror_${VERSION}-unstable_amd64.deb
           filepath: /pcapmirror-debian-unstable_amd64.deb
           link_type: package
-        # - name: pcapmirror_${VERSION}-pios12_armhf.deb (PiOS 12 armhf)
-        #   url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-pios12_armhf.deb
-        #   filepath: /pcapmirror-pios12_armhf.deb
-        #   link_type: package
-        # - name: pcapmirror_${VERSION}-pios12_arm64.deb (PiOS 12 arm64)
-        #   url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-pios12_arm64.deb
-        #   filepath: /pcapmirror-pios12_arm64.deb
-        #   link_type: package
+        - name: pcapmirror_${VERSION}-pios12_armhf.deb (PiOS 12 armhf)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-pios12_armhf.deb
+          filepath: /pcapmirror-pios12_armhf.deb
+          link_type: package
+        - name: pcapmirror_${VERSION}-pios12_arm64.deb (PiOS 12 arm64)
+          url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-pios12_arm64.deb
+          filepath: /pcapmirror-pios12_arm64.deb
+          link_type: package
         - name: pcapmirror_${VERSION}-ubu24.04_amd64.deb (Ubuntu 24.04 (noble))
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/noble/pcapmirror_${VERSION}-ubu24.04_amd64.deb
           filepath: /pcapmirror-ubuntu24.04_amd64.deb
