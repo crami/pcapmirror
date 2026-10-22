@@ -139,7 +139,21 @@ publish-deb:
   script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends openssh-client
     - mkdir -p ~/.ssh && echo "$APT_KNOWN_HOSTS" > ~/.ssh/known_hosts
-    - eval "$(ssh-agent -s)" && echo "$APT_DEPLOY_KEY" | tr -d '\r' | ssh-add -
+    # APT_DEPLOY_KEY may be a variable or a file variable (then it is a path),
+    # with the key as is or base64 encoded (base64 -w0, so it can be masked).
+    - |
+      key="$APT_DEPLOY_KEY"
+      [ -f "$key" ] && key=$(cat "$key")
+      case $key in
+        -----BEGIN*) ;;
+        *) key=$(printf '%s' "$key" | base64 -d) ;;
+      esac
+      if [ -z "$key" ]; then
+        echo "APT_DEPLOY_KEY is empty: not set, or protected and $CI_COMMIT_REF_NAME is not a protected tag" >&2
+        exit 1
+      fi
+      eval "$(ssh-agent -s)"
+      printf '%s\n' "$key" | tr -d '\r' | ssh-add -
     # The packages are in dist/<suite>/; each goes to the distribution of
     # the same name in the repository. Only the amd64 ones: dist/bookworm/
     # also has the PiOS packages.
