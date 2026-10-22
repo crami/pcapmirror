@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pcapmirror – mirror network traffic to Wireshark</title>
+<meta name="description" content="pcapmirror captures network traffic with libpcap and mirrors it to a remote host using TZSP or ERSPAN – straight into a running Wireshark. Free and open source.">
+<meta property="og:title" content="pcapmirror">
+<meta property="og:description" content="Capture network traffic and mirror it to a remote host using TZSP or ERSPAN.">
+<meta property="og:image" content="https://pcapmirror.freestone.net/img/logo.png">
+<meta property="og:url" content="https://pcapmirror.freestone.net/">
+<link rel="icon" href="img/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="img/icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./"><img src="img/icon.png" alt="">pcapmirror</a>
+      <div class="links">
+        <a href="#features">Features</a>
+        <a href="#usage">Usage</a>
+        <a href="#download">Download</a>
+      </div>
+    </nav>
+    <div class="hero-body">
+      <div>
+        <h1>pcapmirror</h1>
+        <p class="lead">Capture network traffic on one machine and mirror it to another – straight into a running Wireshark, or to any collector that speaks TZSP or ERSPAN.</p>
+        <p class="tags">libpcap · BPF filters · TZSP &amp; ERSPAN · IPv4 &amp; IPv6</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="#download">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg>
+            Download
+          </a>
+          <a class="btn btn-ghost" href="#usage">How to use it</a>
+        </div>
+        <p class="note">Free and open source · Version <!--VERSION-->0.7<!--/VERSION--> · Debian, Ubuntu, Rocky Linux, macOS, OpenBSD</p>
+      </div>
+      <img class="hero-logo" src="img/logo.png" alt="pcapmirror logo" width="853" height="789">
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="features">
+  <h2>A remote span port in one command</h2>
+  <p class="sub">When you cannot run Wireshark where the traffic is, pcapmirror captures it there and sends it to where you are.</p>
+  <div class="features">
+    <div class="feature">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12"/><path d="m12 7 5 5-5 5"/><path d="M20 4v16"/></svg>TZSP and ERSPAN</h3>
+      <p>Packets are sent in TZSP over UDP (the default), or in ERSPAN type II over GRE with a session ID of your choice – the format switches and routers use for remote span ports.</p>
+    </div>
+    <div class="feature">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>BPF capture filters</h3>
+      <p>Mirror only what you need with the same filter syntax as tcpdump and Wireshark, like <code>tcp port 443</code> or <code>host 10.0.0.5</code>.</p>
+    </div>
+    <div class="feature">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h18v12H3z"/><path d="M8 20h8M12 16v4"/><path d="m7 12 3-3 2 2 4-4"/></svg>Made for Wireshark</h3>
+      <p>Wireshark decodes TZSP and ERSPAN out of the box: start a capture on the receiving machine and the mirrored packets show up as if captured locally.</p>
+    </div>
+    <div class="feature">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>IPv4 and IPv6</h3>
+      <p>Send TZSP to a host name, an IPv4 or an IPv6 address, and force either address family when a name resolves to both. ERSPAN goes over IPv4.</p>
+    </div>
+    <div class="feature">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M13.5 6l-3 12"/></svg>See what you send</h3>
+      <p>Verbose mode decodes every mirrored packet – Ethernet, VLAN and QinQ, ARP, IPv4 and IPv6 with the well-known protocols. Or just count matching packets.</p>
+    </div>
+    <div class="feature">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>Small and portable</h3>
+      <p>A single C program that only needs libpcap. Runs on Linux, macOS and OpenBSD, on servers, routers and Raspberry Pis.</p>
+    </div>
+  </div>
+</section>
+
+<section id="usage">
+  <h2>Usage</h2>
+  <p class="sub">pcapmirror needs root privileges (or the capture capability) to read from the interface.</p>
+  <div class="usage">
+    <div class="card">
+      <h3>Mirror web traffic to Wireshark</h3>
+      <p>On the machine with the traffic, send everything on <code>eth0</code> to TCP port 80 to 192.168.1.100:</p>
+      <pre><code>sudo pcapmirror -i eth0 -f "tcp port 80" -r 192.168.1.100</code></pre>
+      <p>On 192.168.1.100, capture in Wireshark with the capture filter <code>udp dst port 37008</code> and make sure the firewall lets the UDP traffic in.</p>
+    </div>
+    <div class="card">
+      <h3>Send ERSPAN to a collector</h3>
+      <p>ERSPAN needs the IPv4 source address of the GRE packets; the session ID defaults to 42:</p>
+      <pre><code>sudo pcapmirror -e -i eth0 -s 192.0.2.10 -S 7 -r 192.0.2.50</code></pre>
+      <p>In Wireshark, capture with the filter <code>ip proto gre</code>. Not sure which interfaces there are? <code>pcapmirror -l</code> lists them.</p>
+    </div>
+  </div>
+  <table class="options">
+    <thead><tr><th>Option</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>-i &lt;interface&gt;</code></td><td>Capture interface</td></tr>
+      <tr><td><code>-f &lt;filter&gt;</code></td><td>Capture filter (BPF syntax)</td></tr>
+      <tr><td><code>-r &lt;host&gt;</code></td><td>Destination host name, IPv4 or IPv6 address (required)</td></tr>
+      <tr><td><code>-p &lt;port&gt;</code></td><td>Destination port (default 37008)</td></tr>
+      <tr><td><code>-e</code></td><td>Use ERSPAN encapsulation (default TZSP)</td></tr>
+      <tr><td><code>-s &lt;source_ip&gt;</code></td><td>Source IP address (required for ERSPAN)</td></tr>
+      <tr><td><code>-S &lt;session_id&gt;</code></td><td>ERSPAN session ID, 0 to 1023 (default 42)</td></tr>
+      <tr><td><code>-4</code> / <code>-6</code></td><td>Force IPv4 or IPv6 host lookup</td></tr>
+      <tr><td><code>-l</code></td><td>List the available network interfaces</td></tr>
+      <tr><td><code>-v</code></td><td>Verbose: print every mirrored packet</td></tr>
+      <tr><td><code>-c</code></td><td>Count matching packets (overrides <code>-v</code>)</td></tr>
+      <tr><td><code>-h</code></td><td>Show the help</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="download">
+  <h2>Download</h2>
+  <p class="sub">Packages of the latest release, version <!--VERSION-->0.7<!--/VERSION-->. Older versions are on the <a href="https://git.freestone.net/cramer/pcapmirror/-/releases">releases page</a>.</p>
+  <div class="downloads">
+    <div class="dl">
+      <span class="badge">Debian</span>
+      <h3>Debian package</h3>
+      <p>For 64-bit PCs and servers (amd64).</p>
+      <ul class="pkgs">
+        <li><strong>Debian 12 (bookworm)</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-debian12_amd64.deb">Download</a></li>
+        <li><strong>Debian 13 (trixie)</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-debian13_amd64.deb">Download</a></li>
+        <li><strong>Debian testing</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-debian-testing_amd64.deb">Download</a></li>
+        <li><strong>Debian unstable</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-debian-unstable_amd64.deb">Download</a></li>
+      </ul>
+      <p class="hint">Install with <code>sudo apt install ./pcapmirror-*.deb</code>, or use the <a href="#repository">apt repository</a> for automatic updates.</p>
+    </div>
+    <div class="dl">
+      <span class="badge">Ubuntu</span>
+      <h3>Ubuntu package</h3>
+      <p>For 64-bit PCs and servers (amd64).</p>
+      <ul class="pkgs">
+        <li><strong>Ubuntu 24.04 (noble)</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-ubuntu24.04_amd64.deb">Download</a></li>
+        <li><strong>Ubuntu 25.04 (plucky)</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-ubuntu25.04_amd64.deb">Download</a></li>
+      </ul>
+      <p class="hint">Install with <code>sudo apt install ./pcapmirror-*.deb</code></p>
+    </div>
+    <div class="dl">
+      <span class="badge">Rocky Linux</span>
+      <h3>RPM package</h3>
+      <p>For Rocky Linux and other Enterprise Linux (x86_64).</p>
+      <ul class="pkgs">
+        <li><strong>Rocky Linux 8</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-rockylinux8.x86_64.rpm">Download</a></li>
+        <li><strong>Rocky Linux 9</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-rockylinux9.x86_64.rpm">Download</a></li>
+        <li><strong>Rocky Linux 10</strong><a class="btn" href="https://git.freestone.net/cramer/pcapmirror/-/releases/permalink/latest/downloads/pcapmirror-rockylinux10.x86_64.rpm">Download</a></li>
+      </ul>
+      <p class="hint">Install with <code>sudo dnf install ./pcapmirror-*.rpm</code></p>
+    </div>
+  </div>
+  <div class="install">
+    <div>
+      <strong>Homebrew (macOS and Linux)</strong>
+      <p><code>brew install pcapmirror</code></p>
+    </div>
+    <div>
+      <strong>From source</strong>
+      <p>Needs a C compiler and libpcap (<code>libpcap-dev</code> on Debian, <code>libpcap-devel</code> on Rocky Linux). Get the source from <a href="https://git.freestone.net/cramer/pcapmirror">git.freestone.net</a>, then</p>
+      <p><code>make &amp;&amp; sudo make install</code></p>
+    </div>
+  </div>
+  <div class="repo" id="repository" data-copy="Copy" data-copied="Copied">
+    <input type="radio" name="distro" id="distro-bookworm" value="bookworm">
+    <input type="radio" name="distro" id="distro-trixie" value="trixie" checked>
+    <input type="radio" name="distro" id="distro-testing" value="testing">
+    <input type="radio" name="distro" id="distro-unstable" value="unstable">
+    <h3>Install from the apt repository</h3>
+    <p>With the repository, pcapmirror is updated together with the rest of your system. Choose your Debian version:</p>
+    <div class="distros">
+      <label for="distro-bookworm">Debian 12 (bookworm)</label>
+      <label for="distro-trixie">Debian 13 (trixie)</label>
+      <label for="distro-testing">Debian testing</label>
+      <label for="distro-unstable">Debian unstable</label>
+    </div>
+    <ol class="steps">
+      <li>
+        <p>Download the key the packages are signed with:</p>
+        <pre><code>curl -fsSL https://packages.freestone.net/repo.asc | sudo tee /etc/apt/keyrings/packages.freestone.net.asc &gt; /dev/null</code></pre>
+      </li>
+      <li>
+        <p>Save this as <code>/etc/apt/sources.list.d/packages.freestone.net.sources</code>:</p>
+        <pre class="sources sources-bookworm"><code>Types: deb
+URIs: https://packages.freestone.net
+Suites: bookworm
+Components: main
+Signed-By: /etc/apt/keyrings/packages.freestone.net.asc</code></pre>
+        <pre class="sources sources-trixie"><code>Types: deb
+URIs: https://packages.freestone.net
+Suites: trixie
+Components: main
+Signed-By: /etc/apt/keyrings/packages.freestone.net.asc</code></pre>
+        <pre class="sources sources-testing"><code>Types: deb
+URIs: https://packages.freestone.net
+Suites: testing
+Components: main
+Signed-By: /etc/apt/keyrings/packages.freestone.net.asc</code></pre>
+        <pre class="sources sources-unstable"><code>Types: deb
+URIs: https://packages.freestone.net
+Suites: unstable
+Components: main
+Signed-By: /etc/apt/keyrings/packages.freestone.net.asc</code></pre>
+        <p class="hint">For example with <code>sudo nano /etc/apt/sources.list.d/packages.freestone.net.sources</code>. If you already set up the repository for another package from freestone.net, skip the first two steps.</p>
+      </li>
+      <li>
+        <p>Install pcapmirror:</p>
+        <pre><code>sudo apt update
+sudo apt install pcapmirror</code></pre>
+      </li>
+    </ol>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>pcapmirror · Matthias Cramer, Bülach, Switzerland</span>
+    <span><a href="https://git.freestone.net/cramer/pcapmirror">Source code</a> · <a href="https://git.freestone.net/cramer/pcapmirror/-/releases">Releases</a> · <a href="mailto:cramer@freestone.net">cramer@freestone.net</a></span>
+  </div>
+</footer>
+
+<script>
+// Copy buttons for the commands of the repository instructions.
+(function () {
+  var repo = document.getElementById("repository");
+  if (!repo || !navigator.clipboard) return;
+  repo.querySelectorAll("pre").forEach(function (pre) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "copy";
+    button.textContent = repo.dataset.copy;
+    button.addEventListener("click", function () {
+      navigator.clipboard.writeText(pre.querySelector("code").textContent).then(function () {
+        button.textContent = repo.dataset.copied;
+        setTimeout(function () { button.textContent = repo.dataset.copy; }, 1500);
+      });
+    });
+    pre.appendChild(button);
+  });
+})();
+</script>
+</body>
+</html>

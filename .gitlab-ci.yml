@@ -9,7 +9,9 @@
 # and unstable packages also go to the apt repository.
 #
 # The release job creates a GitLab release for the tag that links the
-# packages in the generic package registry.
+# packages in the generic package registry. Each link has a filepath without
+# the version, so .../-/releases/permalink/latest/downloads/<filepath> always
+# gives the package of the newest release (used by website/).
 #
 # publish-deb needs these CI/CD variables: APT_HOST (the repository server),
 # APT_KNOWN_HOSTS (its host key line) and APT_DEPLOY_KEY (private key of the
@@ -184,34 +186,45 @@ release:
       links:
         - name: pcapmirror_${VERSION}-deb12_amd64.deb (Debian 12 (bookworm))
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-deb12_amd64.deb
+          filepath: /pcapmirror-debian12_amd64.deb
           link_type: package
         - name: pcapmirror_${VERSION}-deb13_amd64.deb (Debian 13 (trixie))
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/trixie/pcapmirror_${VERSION}-deb13_amd64.deb
+          filepath: /pcapmirror-debian13_amd64.deb
           link_type: package
         - name: pcapmirror_${VERSION}-testing_amd64.deb (Debian testing)
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/testing/pcapmirror_${VERSION}-testing_amd64.deb
+          filepath: /pcapmirror-debian-testing_amd64.deb
           link_type: package
         - name: pcapmirror_${VERSION}-unstable_amd64.deb (Debian unstable)
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/unstable/pcapmirror_${VERSION}-unstable_amd64.deb
+          filepath: /pcapmirror-debian-unstable_amd64.deb
           link_type: package
         # - name: pcapmirror_${VERSION}-pios12_armhf.deb (PiOS 12 armhf)
         #   url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-pios12_armhf.deb
+        #   filepath: /pcapmirror-pios12_armhf.deb
         #   link_type: package
         # - name: pcapmirror_${VERSION}-pios12_arm64.deb (PiOS 12 arm64)
         #   url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/bookworm/pcapmirror_${VERSION}-pios12_arm64.deb
+        #   filepath: /pcapmirror-pios12_arm64.deb
         #   link_type: package
         - name: pcapmirror_${VERSION}-ubu24.04_amd64.deb (Ubuntu 24.04 (noble))
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/noble/pcapmirror_${VERSION}-ubu24.04_amd64.deb
+          filepath: /pcapmirror-ubuntu24.04_amd64.deb
           link_type: package
         - name: pcapmirror_${VERSION}-ubu25.04_amd64.deb (Ubuntu 25.04 (plucky))
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/plucky/pcapmirror_${VERSION}-ubu25.04_amd64.deb
+          filepath: /pcapmirror-ubuntu25.04_amd64.deb
           link_type: package
         - name: pcapmirror-${VERSION}-1.el8.x86_64.rpm (Rocky Linux 8)
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/rockylinux8/pcapmirror-${VERSION}-1.el8.x86_64.rpm
+          filepath: /pcapmirror-rockylinux8.x86_64.rpm
           link_type: package
         - name: pcapmirror-${VERSION}-1.el9.x86_64.rpm (Rocky Linux 9)
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/rockylinux9/pcapmirror-${VERSION}-1.el9.x86_64.rpm
+          filepath: /pcapmirror-rockylinux9.x86_64.rpm
           link_type: package
         - name: pcapmirror-${VERSION}-1.el10.x86_64.rpm (Rocky Linux 10)
           url: $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/pcapmirror/rockylinux10/pcapmirror-${VERSION}-1.el10.x86_64.rpm
+          filepath: /pcapmirror-rockylinux10.x86_64.rpm
           link_type: package
